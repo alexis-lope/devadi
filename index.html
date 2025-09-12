@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fútbol 2D - Juego Mejorado</title>
+
+  <link rel="stylesheet" href="style.css">
+  <script language="javascript" type="text/javascript" src="libraries/p5.min.js"></script>
+  <script language="javascript" type="text/javascript" src="kevin_29_8_25.js"></script>
+   
+
+  
+</head>
+
+<body>
+  <header class="header">
+    <h1>⚽ Fútbol 2D - Cabezones Tec</h1>
+    <p>¡El juego de fútbol más divertido para dos jugadores!</p>
+  </header>
+  <form id="formRegistro">
+  <input type="text" id="regNombre" placeholder="Usuario">
+  <input type="email" id="regEmail" placeholder="Email">
+  <input type="password" id="regPass" placeholder="Contraseña">
+  <button type="submit">Registrarse</button>
+</form>
+
+<form id="formLogin">
+  <input type="email" id="logEmail" placeholder="Email">
+  <input type="password" id="logPass" placeholder="Contraseña">
+  <button type="submit">Ingresar</button>
+</form>
+
+  <div class="container">
+ 
+    <div class="game-section">
+      <h2 class="game-title">🎮 Área de Juego</h2>
+      <div id="gameContainer"></div>
+    </div>
+ 
+    <div class="sidebar">
+      
+      <div class="card">
+        <h3>🏆 Selección de Equipos</h3>
+        <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/3.jpg-HORqoQJ2BdUqwd9PyA7dmcPirFuuwk.jpeg" alt="Selección de equipos - Boca Juniors vs River Plate" />
+      </div>
+
+ 
+      <div class="card">
+        <h3>🎮 Controles del Juego</h3>
+        <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/4.jpg-hRVHaWFbCkOdABcKaXS8k95cjknd9D.jpeg" alt="Controles del juego" />
+        <div class="controls-grid">
+          <div class="player-controls player-red">
+            <h4>🔴 Jugador Rojo</h4>
+            <p><strong>A/D:</strong> Mover<br>
+            <strong>W:</strong> Saltar<br>
+            <strong>R:</strong> Patear</p>
+          </div>
+          <div class="player-controls player-blue">
+            <h4>🔵 Jugador Azul</h4>
+            <p><strong>←/→:</strong> Mover<br>
+            <strong>↑:</strong> Saltar<br>
+            <strong>L:</strong> Patear</p>
+          </div>
+        </div>
+      </div>
+
+ 
+      <div class="card">
+        <h3>📋 Reglas del Juego</h3>
+        <div class="objective-box">
+          <h4>🎯 Objetivo:</h4>
+          <p>Marca más goles que tu oponente antes de que termine el tiempo</p>
+        </div>
+        <div class="mechanics-box">
+          <h4>⚽ Mecánicas:</h4>
+          <ul class="rules-list">
+            <li>• Salta para alcanzar pelotas altas</li>
+            <li>• Patea en el momento justo para más potencia</li>
+            <li>• Usa las paredes para rebotes estratégicos</li>
+            <li>• Primer jugador en llegar a 5 goles gana</li>
+          </ul>
+        </div>
+        <div class="general-controls-box">
+          <h4>⚙️ Controles Generales:</h4>
+          <ul class="rules-list">
+            <li>• <strong>P:</strong> Pausar/Reanudar</li>
+            <li>• <strong>ESPACIO:</strong> Confirmar/Reiniciar</li>
+            <li>• <strong>ESC:</strong> Volver al menú</li>
+          </ul>
+        </div>
+      </div>
+
+      
+      <div class="card">
+        <h3>🏟️ Vista del Campo</h3>
+        <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/2.jpg-mL2NgEz0Og7hiWN1JuAIWWu288Xt7S.jpeg" alt="Vista del campo de juego" />
+        <p>Campo de fútbol profesional con marcador en tiempo real</p>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="footer-card">
+        <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/1.jpg-LtxDYY6f66ywSpSW50JRjcNjKvWA4V.jpeg" alt="Cabezones Tec - Menú Principal" />
+        <p>Desarrollado con ❤️ para la diversión de todos los futboleros</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
