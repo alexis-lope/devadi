@@ -5,34 +5,70 @@ let goles1 = 0,
 let tiempoInicial
 let pausado = false
 const duracion = 90
-let estado = "menu" // "menu", "instrucciones", "jugando", "pausa", "fin"
+let estado = "menu" // "menu", "instrucciones", "jugando", "pausa", "fin", "confirmacion"
 let particulas = []
 let efectoGol = null
 const puntajeMaximo = 5
 let animacionTitulo = 0
 let menuSeleccion = 0
-
+let confirmacionSeleccion = 0 // Variable para controlar selección en confirmación
+let imagenCampo // Agregando variable para la imagen del campo
 const coloresFondo = {
-  cesped1: [34, 139, 34],
-  cesped2: [50, 205, 50],
+  cesped1: [0, 128, 0],
+  cesped2: [0, 100, 0],
   lineas: [255, 255, 255],
-  porteria: [139, 69, 19],
-  area: [255, 255, 255, 30],
+  porteria: [255, 215, 255],
+  area: [255, 255, 255, 100],
 }
+
+// === CONSTANTES DE P5.JS ===
+const CENTER = "center"
+const LEFT = "left"
+const RIGHT = "right"
+const TOP = "top"
+const BOTTOM = "bottom"
+const BOLD = "bold"
+const NORMAL = "normal"
+
+// === VARIABLES GLOBALES DE P5.JS ===
+let key = ""
+let keyCode = 0
+
+// === CÓDIGOS DE TECLAS ===
+const UP_ARROW = 38
+const DOWN_ARROW = 40
+const LEFT_ARROW = 37
+const RIGHT_ARROW = 39
+const ESCAPE = 27
 
 // === CONFIGURACIÓN INICIAL ===
 function setup() {
-  createCanvas(windowWidth, windowHeight)
+  const canvas = createCanvas(800, 600)
+  canvas.parent("gameContainer")
+  imagenCampo = loadImage(
+    "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/2.jpg-mL2NgEz0Og7hiWN1JuAIWWu288Xt7S.jpeg",
+  )
   inicializarJuego()
 }
 
 function inicializarJuego() {
-  jugador1 = new Jugador(100, [255, 69, 0], "a", "d", "w", "r", "ROJO")
-  jugador2 = new Jugador(windowWidth - 100, [30, 144, 255], LEFT_ARROW, RIGHT_ARROW, UP_ARROW, 76, "AZUL")
+  jugador1 = new Jugador(150, [255, 69, 0], "a", "d", "w", "r", "ROJO")
+  jugador2 = new Jugador(650, [30, 144, 255], LEFT_ARROW, RIGHT_ARROW, UP_ARROW, 76, "AZUL")
   pelota = new Pelota()
+  pelota.y = 430
   particulas = []
   efectoGol = null
   goles1 = goles2 = 0
+  resetearPosicionesJugadores()
+}
+
+function resetearPosicionesJugadores() {
+  jugador1.x = 150
+  jugador1.y = 380
+  jugador1.vy = 0
+  jugador2.x = 650
+  jugador2.y = 380
+  jugador2.vy = 0
 }
 
 // === FUNCIÓN PRINCIPAL DE DIBUJO ===
@@ -55,6 +91,9 @@ function draw() {
     case "fin":
       mostrarPantallaFinal()
       break
+    case "confirmacion":
+      mostrarConfirmacionSalida()
+      break
   }
 
   actualizarParticulas()
@@ -64,12 +103,12 @@ function draw() {
 // === FUNCIONES DE PANTALLAS ===
 function mostrarMenu() {
   push()
-  translate(windowWidth / 2, windowHeight / 3)
+  translate(400, 200)
   rotate(sin(animacionTitulo) * 0.02)
 
   fill(0, 0, 0, 100)
   textAlign(CENTER, CENTER)
-  textSize(72)
+  textSize(48)
   textStyle(BOLD)
   text("⚽ FÚTBOL 2D ⚽", 3, 3)
 
@@ -77,92 +116,63 @@ function mostrarMenu() {
   text("⚽ FÚTBOL 2D ⚽", 0, 0)
   pop()
 
-  const opciones = ["🎮 JUGAR", "📋 INSTRUCCIONES", "⚙️ CONFIGURACIÓN"]
+  const opciones = ["🎮 JUGAR", "📋 INSTRUCCIONES"]
 
   textAlign(CENTER, CENTER)
-  textSize(32)
+  textSize(24)
 
   for (let i = 0; i < opciones.length; i++) {
     if (i === menuSeleccion) {
       fill(255, 255, 0)
-      rect(windowWidth / 2 - 150, windowHeight / 2 + i * 60 - 20, 300, 50, 10)
+      rect(300, 280 + i * 50, 200, 40, 10)
       fill(0)
     } else {
       fill(255)
     }
-    text(opciones[i], windowWidth / 2, windowHeight / 2 + i * 60)
+    text(opciones[i], 400, 300 + i * 50)
   }
 
   fill(200)
-  textSize(18)
-  text("Usa ↑↓ para navegar, ESPACIO para seleccionar", windowWidth / 2, windowHeight - 50)
+  textSize(14)
+  text("Usa ↑↓ para navegar, ESPACIO para seleccionar", 400, 550)
 }
 
 function mostrarInstrucciones() {
   fill(0, 0, 0, 150)
-  rect(0, 0, windowWidth, windowHeight)
+  rect(0, 0, 800, 600)
 
   fill(255)
   textAlign(CENTER, CENTER)
-  textSize(48)
+  textSize(32)
   textStyle(BOLD)
-  text("📋 INSTRUCCIONES", windowWidth / 2, 80)
+  text("📋 INSTRUCCIONES", 400, 60)
 
-  textSize(24)
+  textSize(16)
   textStyle(NORMAL)
   textAlign(LEFT, TOP)
 
   const instrucciones = [
-    "🎯 OBJETIVO:",
-    "   • Marca más goles que tu oponente",
-    "   • Primer jugador en llegar a " + puntajeMaximo + " goles gana",
+    "🎯 OBJETIVO: Marca más goles que tu oponente",
     "",
-    "🔴 JUGADOR ROJO (Izquierda):",
-    "   • A/D: Mover izquierda/derecha",
-    "   • W: Saltar",
-    "   • R: Patear pelota",
+    "🔴 JUGADOR ROJO: A/D mover, W saltar, R patear",
+    "🔵 JUGADOR AZUL: ←/→ mover, ↑ saltar, L patear",
     "",
-    "🔵 JUGADOR AZUL (Derecha):",
-    "   • ←/→: Mover izquierda/derecha",
-    "   • ↑: Saltar",
-    "   • L: Patear pelota",
-    "",
-    "⚽ CONTROLES GENERALES:",
-    "   • P: Pausar/Reanudar juego",
-    "   • ESPACIO: Confirmar/Reiniciar",
-    "",
-    "🏆 CONSEJOS:",
-    "   • Salta para alcanzar pelotas altas",
-    "   • Patea en el momento justo para más potencia",
-    "   • Usa las paredes para rebotes estratégicos",
+    "⚽ CONTROLES: P pausar, ESPACIO confirmar",
   ]
 
-  let y = 140
+  let y = 120
   for (const linea of instrucciones) {
-    if (
-      linea.startsWith("🎯") ||
-      linea.startsWith("🔴") ||
-      linea.startsWith("🔵") ||
-      linea.startsWith("⚽") ||
-      linea.startsWith("🏆")
-    ) {
-      fill(255, 215, 0)
-      textStyle(BOLD)
-    } else {
-      fill(255)
-      textStyle(NORMAL)
-    }
+    fill(255)
     text(linea, 50, y)
-    y += 30
+    y += 25
   }
 
   fill(255, 69, 0)
-  rect(windowWidth / 2 - 100, windowHeight - 80, 200, 50, 10)
+  rect(300, 500, 200, 40, 10)
   fill(255)
   textAlign(CENTER, CENTER)
-  textSize(24)
-  textStyle(BOLD)
-  text("VOLVER (ESC)", windowWidth / 2, windowHeight - 55)
+  textSize(18)
+  text("VOLVER (ESC)", 400, 520)
 }
 
 function modoJuego() {
@@ -171,6 +181,7 @@ function modoJuego() {
   if (!pausado) {
     jugador1.actualizar()
     jugador2.actualizar()
+    jugador1.colisionConJugador(jugador2)
     pelota.actualizar()
     pelota.rebotarConJugador(jugador1)
     pelota.rebotarConJugador(jugador2)
@@ -184,7 +195,7 @@ function modoJuego() {
 
   mostrarMarcadorMejorado()
   mostrarTiempoMejorado()
-  mostrarBarraProgreso()
+  mostrarBotonSalir()
 
   if (efectoGol) {
     mostrarEfectoGol()
@@ -193,173 +204,164 @@ function modoJuego() {
 
 function modoPausa() {
   fill(0, 0, 0, 150)
-  rect(0, 0, windowWidth, windowHeight)
+  rect(0, 0, 800, 600)
 
+  fill(255)
+  textAlign(CENTER, CENTER)
+  textSize(32)
+  textStyle(BOLD)
+  text("PAUSA", 400, 300)
+
+  textSize(14)
+  fill(200)
+  text("Presiona P para continuar", 400, 350)
+  text("Presiona ESPACIO o ESC para salir", 400, 370)
+}
+
+function mostrarPantallaFinal() {
+  fill(0, 0, 0, 150)
+  rect(0, 0, 800, 600)
+
+  fill(255)
+  textAlign(CENTER, CENTER)
+  textSize(32)
+  textStyle(BOLD)
+  text("FIN DEL JUEGO", 400, 200)
+
+  textSize(24)
+  if (goles1 > goles2) {
+    fill(255, 69, 0)
+    text("GANÓ EL JUGADOR ROJO", 400, 250)
+  } else if (goles2 > goles1) {
+    fill(30, 144, 255)
+    text("GANÓ EL JUGADOR AZUL", 400, 250)
+  } else {
+    fill(255)
+    text("EMPATE", 400, 250)
+  }
+
+  textSize(14)
+  fill(200)
+  text("Presiona ESPACIO para jugar de nuevo", 400, 300)
+  text("Presiona ESC para volver al Menú", 400, 320)
+}
+
+function mostrarBotonSalir() {
+  fill(255, 0, 0)
+  rect(680, 20, 100, 30, 5)
+
+  fill(255)
+  textAlign(CENTER, CENTER)
+  textSize(14)
+  textStyle(BOLD)
+  text("SALIR (ESC)", 730, 35)
+}
+
+function mostrarConfirmacionSalida() {
+  // Mostrar el juego de fondo con transparencia
   mostrarCancha()
   jugador1.mostrar()
   jugador2.mostrar()
   pelota.mostrar()
+  mostrarMarcadorMejorado()
+  mostrarTiempoMejorado()
+  mostrarBotonSalir()
 
-  fill(255, 255, 0)
-  rect(windowWidth / 2 - 150, windowHeight / 2 - 100, 300, 200, 20)
+  // Overlay oscuro
+  fill(0, 0, 0, 150)
+  rect(0, 0, 800, 600)
+
+  // Ventana de confirmación
+  fill(255, 255, 255)
+  rect(250, 200, 300, 200, 20)
 
   fill(0)
   textAlign(CENTER, CENTER)
-  textSize(48)
-  textStyle(BOLD)
-  text("⏸️ PAUSA", windowWidth / 2, windowHeight / 2 - 40)
-
-  textSize(24)
-  textStyle(NORMAL)
-  text("Presiona P para continuar", windowWidth / 2, windowHeight / 2 + 20)
-  text("ESC para volver al menú", windowWidth / 2, windowHeight / 2 + 50)
-}
-
-function mostrarPantallaFinal() {
-  dibujarFondoDegradado()
-
-  let ganador = ""
-  let colorGanador = [255, 255, 255]
-
-  if (goles1 > goles2) {
-    ganador = "🔴 JUGADOR ROJO"
-    colorGanador = [255, 69, 0]
-  } else if (goles2 > goles1) {
-    ganador = "🔵 JUGADOR AZUL"
-    colorGanador = [30, 144, 255]
-  } else {
-    ganador = "🤝 EMPATE"
-    colorGanador = [255, 215, 0]
-  }
-
-  fill(255)
-  textAlign(CENTER, CENTER)
-  textSize(48)
-  textStyle(BOLD)
-  text("🏆 ¡FIN DEL PARTIDO! 🏆", windowWidth / 2, windowHeight / 3)
-
-  fill(colorGanador[0], colorGanador[1], colorGanador[2])
-  textSize(56)
-  text(ganador, windowWidth / 2, windowHeight / 2 - 40)
-
-  fill(255)
-  textSize(36)
-  text("Marcador Final: " + goles1 + " - " + goles2, windowWidth / 2, windowHeight / 2 + 20)
-
-  textSize(24)
-  const tiempoTotal = floor((millis() - tiempoInicial) / 1000)
-  text("Tiempo jugado: " + tiempoTotal + " segundos", windowWidth / 2, windowHeight / 2 + 60)
-
-  fill(34, 139, 34)
-  rect(windowWidth / 2 - 200, windowHeight - 120, 180, 50, 10)
-  fill(255, 69, 0)
-  rect(windowWidth / 2 + 20, windowHeight - 120, 180, 50, 10)
-
-  fill(255)
   textSize(20)
   textStyle(BOLD)
-  text("JUGAR DE NUEVO", windowWidth / 2 - 110, windowHeight - 95)
-  text("MENÚ PRINCIPAL", windowWidth / 2 + 110, windowHeight - 95)
+  text("¿Estás seguro de", 400, 250)
+  text("volver al Menú?", 400, 275)
 
+  // Botón SÍ
+  fill(255, 0, 0)
+  rect(280, 320, 80, 40, 10)
+  fill(255)
   textSize(16)
-  textStyle(NORMAL)
-  fill(200)
-  text("ESPACIO: Jugar de nuevo | ESC: Menú principal", windowWidth / 2, windowHeight - 30)
+  text("SÍ", 320, 340)
+
+  // Botón NO
+  fill(0, 150, 0)
+  rect(440, 320, 80, 40, 10)
+  fill(255)
+  text("NO", 480, 340)
+
+  // Instrucciones
+  fill(100)
+  textSize(12)
+  text("Usa ← → para seleccionar, ESPACIO para confirmar", 400, 380)
 }
 
 // === FUNCIONES DE INTERFAZ ===
 function mostrarCancha() {
-  for (let i = 0; i < windowWidth; i += 40) {
-    fill(coloresFondo.cesped1[0], coloresFondo.cesped1[1], coloresFondo.cesped1[2])
-    if (floor(i / 40) % 2 === 0) {
-      fill(coloresFondo.cesped2[0], coloresFondo.cesped2[1], coloresFondo.cesped2[2])
+  if (imagenCampo) {
+    image(imagenCampo, 0, 0, 800, 600)
+  } else {
+    // Fallback al campo original si la imagen no carga
+    for (let i = 0; i < 800; i += 40) {
+      fill(coloresFondo.cesped1[0], coloresFondo.cesped1[1], coloresFondo.cesped1[2])
+      if (Math.floor(i / 40) % 2 === 0) {
+        fill(coloresFondo.cesped2[0], coloresFondo.cesped2[1], coloresFondo.cesped2[2])
+      }
+      rect(i, 0, 40, 600)
     }
-    rect(i, 0, 40, windowHeight)
+
+    stroke(coloresFondo.lineas[0], coloresFondo.lineas[1], coloresFondo.lineas[2])
+    strokeWeight(3)
+    line(400, 0, 400, 600)
+
+    noFill()
+    ellipse(400, 300, 120)
+
+    fill(255)
+    ellipse(400, 300, 6)
+
+    noStroke()
+    fill(coloresFondo.porteria[0], coloresFondo.porteria[1], coloresFondo.porteria[2])
+
+    // Porterías ajustadas para canvas de 800x600
+    rect(0, 450, 12, 120)
+    rect(0, 450, 60, 12)
+    rect(0, 558, 60, 12)
+
+    rect(788, 450, 12, 120)
+    rect(740, 450, 60, 12)
+    rect(740, 558, 60, 12)
+
+    fill(coloresFondo.area[0], coloresFondo.area[1], coloresFondo.area[2], coloresFondo.area[3])
+    rect(5, 470, 50, 100)
+    rect(745, 470, 50, 100)
+
+    noStroke()
   }
-
-  stroke(coloresFondo.lineas[0], coloresFondo.lineas[1], coloresFondo.lineas[2])
-  strokeWeight(4)
-  line(windowWidth / 2, 0, windowWidth / 2, windowHeight)
-
-  noFill()
-  ellipse(windowWidth / 2, windowHeight / 2, 150)
-
-  fill(255)
-  ellipse(windowWidth / 2, windowHeight / 2, 8)
-
-  noStroke()
-  fill(coloresFondo.porteria[0], coloresFondo.porteria[1], coloresFondo.porteria[2])
-
-  rect(0, windowHeight - 200, 15, 180)
-  rect(0, windowHeight - 200, 80, 15)
-  rect(0, windowHeight - 35, 80, 15)
-
-  rect(windowWidth - 15, windowHeight - 200, 15, 180)
-  rect(windowWidth - 80, windowHeight - 200, 80, 15)
-  rect(windowWidth - 80, windowHeight - 35, 80, 15)
-
-  fill(coloresFondo.area[0], coloresFondo.area[1], coloresFondo.area[2], coloresFondo.area[3])
-  rect(5, windowHeight - 180, 70, 140)
-  rect(windowWidth - 75, windowHeight - 180, 70, 140)
-
-  fill(coloresFondo.cesped1[0] - 20, coloresFondo.cesped1[1] - 20, coloresFondo.cesped1[2] - 20)
-  rect(0, windowHeight - 30, windowWidth, 30)
-
-  noStroke()
 }
 
 function mostrarMarcadorMejorado() {
-  fill(0, 0, 0, 150)
-  rect(windowWidth / 2 - 120, 10, 240, 80, 15)
-
   fill(255)
-  textAlign(CENTER, CENTER)
-  textSize(48)
+  textAlign(CENTER, TOP)
+  textSize(24)
   textStyle(BOLD)
-  text(goles1 + " - " + goles2, windowWidth / 2, 35)
-
-  textSize(16)
-  fill(255, 69, 0)
-  text("ROJO", windowWidth / 2 - 60, 65)
-  fill(30, 144, 255)
-  text("AZUL", windowWidth / 2 + 60, 65)
+  text(`${goles1} - ${goles2}`, 400, 50)
 }
 
 function mostrarTiempoMejorado() {
-  const tiempoTranscurrido = floor((millis() - tiempoInicial) / 1000)
-  const tiempoRestante = max(0, duracion - tiempoTranscurrido)
-
-  fill(0, 0, 0, 150)
-  rect(20, 20, 150, 50, 10)
-
-  if (tiempoRestante <= 10) {
-    fill(255, 0, 0)
-  } else if (tiempoRestante <= 30) {
-    fill(255, 165, 0)
-  } else {
-    fill(255)
-  }
-
-  textAlign(LEFT, CENTER)
+  const tiempoTranscurrido = (millis() - tiempoInicial) / 1000
+  const minutos = Math.floor(tiempoTranscurrido / 60)
+  const segundos = Math.floor(tiempoTranscurrido % 60)
+  fill(255)
+  textAlign(CENTER, TOP)
   textSize(24)
   textStyle(BOLD)
-  text("⏱️ " + tiempoRestante + "s", 30, 45)
-}
-
-function mostrarBarraProgreso() {
-  let progreso = (millis() - tiempoInicial) / (duracion * 1000)
-  progreso = constrain(progreso, 0, 1)
-
-  fill(0, 0, 0, 100)
-  rect(windowWidth - 220, 20, 200, 20, 10)
-
-  fill(255, 215, 0)
-  rect(windowWidth - 220, 20, 200 * progreso, 20, 10)
-
-  fill(255)
-  textAlign(RIGHT, TOP)
-  textSize(14)
-  text("Progreso del partido", windowWidth - 30, 45)
+  text(`${minutos}:${segundos < 10 ? "0" + segundos : segundos}`, 400, 100)
 }
 
 // === SISTEMA DE PARTÍCULAS ===
@@ -382,18 +384,20 @@ function actualizarParticulas() {
 
 // === LÓGICA DE JUEGO ===
 function verificarGol() {
-  if (pelota.x < 75 && pelota.y > windowHeight - 180 && pelota.y < windowHeight - 40) {
+  // Portería izquierda (más centrada verticalmente)
+  if (pelota.x < 45 && pelota.y > 350 && pelota.y < 500) {
     goles2++
     efectoGol = { jugador: 2, tiempo: millis() }
     crearParticulas(pelota.x, pelota.y, [30, 144, 255], 30)
-    pelota.reset()
+    reiniciarPosiciones()
   }
 
-  if (pelota.x > windowWidth - 75 && pelota.y > windowHeight - 180 && pelota.y < windowHeight - 40) {
+  // Portería derecha (más centrada verticalmente)
+  if (pelota.x > 760 && pelota.y > 350 && pelota.y < 500) {
     goles1++
     efectoGol = { jugador: 1, tiempo: millis() }
     crearParticulas(pelota.x, pelota.y, [255, 69, 0], 30)
-    pelota.reset()
+    reiniciarPosiciones()
   }
 }
 
@@ -411,34 +415,37 @@ function mostrarEfectoGol() {
 
     fill(255, 255, 0, alpha)
     textAlign(CENTER, CENTER)
-    textSize(64)
+    textSize(48)
     textStyle(BOLD)
 
     const mensaje = efectoGol.jugador === 1 ? "¡GOL ROJO!" : "¡GOL AZUL!"
-    text(mensaje, windowWidth / 2, windowHeight / 2)
+    text(mensaje, 400, 300)
   } else {
     efectoGol = null
   }
 }
 
 function dibujarFondoDegradado() {
-  for (let i = 0; i <= windowHeight; i++) {
-    const inter = map(i, 0, windowHeight, 0, 1)
+  for (let i = 0; i <= 600; i++) {
+    const inter = map(i, 0, 600, 0, 1)
     const c = lerpColor(color(30, 60, 120), color(50, 100, 150), inter)
     stroke(c)
-    line(0, i, windowWidth, i)
+    line(0, i, 800, i)
   }
   noStroke()
 }
 
 // === CONTROLES ===
 function keyPressed() {
+  key = event.key
+  keyCode = event.keyCode
+
   switch (estado) {
     case "menu":
       if (keyCode === UP_ARROW) {
-        menuSeleccion = (menuSeleccion - 1 + 3) % 3
+        menuSeleccion = (menuSeleccion - 1 + 2) % 2
       } else if (keyCode === DOWN_ARROW) {
-        menuSeleccion = (menuSeleccion + 1) % 3
+        menuSeleccion = (menuSeleccion + 1) % 2
       } else if (key === " ") {
         switch (menuSeleccion) {
           case 0:
@@ -448,8 +455,6 @@ function keyPressed() {
             break
           case 1:
             estado = "instrucciones"
-            break
-          case 2:
             break
         }
       }
@@ -466,7 +471,8 @@ function keyPressed() {
         pausado = !pausado
         estado = pausado ? "pausa" : "jugando"
       } else if (keyCode === ESCAPE) {
-        estado = "menu"
+        estado = "confirmacion"
+        confirmacionSeleccion = 1 // Empezar en "NO"
       } else if (!pausado) {
         jugador1.tecla(key, keyCode, true)
         jugador2.tecla(key, keyCode, true)
@@ -478,7 +484,28 @@ function keyPressed() {
         pausado = false
         estado = "jugando"
       } else if (keyCode === ESCAPE) {
-        estado = "menu"
+        estado = "confirmacion"
+        confirmacionSeleccion = 1 // Empezar en "NO"
+      }
+      break
+
+    case "confirmacion":
+      if (keyCode === LEFT_ARROW) {
+        confirmacionSeleccion = 0 // SÍ
+      } else if (keyCode === RIGHT_ARROW) {
+        confirmacionSeleccion = 1 // NO
+      } else if (key === " ") {
+        if (confirmacionSeleccion === 0) {
+          // SÍ - volver al menú
+          estado = "menu"
+          pausado = false
+        } else {
+          // NO - volver al juego
+          estado = "jugando"
+        }
+      } else if (keyCode === ESCAPE) {
+        // ESC también vuelve al juego
+        estado = "jugando"
       }
       break
 
@@ -495,30 +522,84 @@ function keyPressed() {
 }
 
 function keyReleased() {
+  key = event.key
+  keyCode = event.keyCode
+
   if (estado === "jugando" && !pausado) {
     jugador1.tecla(key, keyCode, false)
     jugador2.tecla(key, keyCode, false)
   }
 }
 
+function mousePressed() {
+  const mouseX = event.clientX - document.getElementById("gameContainer").getBoundingClientRect().left
+  const mouseY = event.clientY - document.getElementById("gameContainer").getBoundingClientRect().top
+
+  switch (estado) {
+    case "jugando":
+      // Botón SALIR (680, 20, 100, 30)
+      if (mouseX >= 680 && mouseX <= 780 && mouseY >= 20 && mouseY <= 50) {
+        estado = "confirmacion"
+        confirmacionSeleccion = 1 // Empezar en "NO"
+      }
+      break
+
+    case "confirmacion":
+      // Botón SÍ (280, 320, 80, 40)
+      if (mouseX >= 280 && mouseX <= 360 && mouseY >= 320 && mouseY <= 360) {
+        estado = "menu"
+        pausado = false
+      }
+      // Botón NO (440, 320, 80, 40)
+      else if (mouseX >= 440 && mouseX <= 520 && mouseY >= 320 && mouseY <= 360) {
+        estado = "jugando"
+      }
+      break
+  }
+}
+
+function mouseMoved() {
+  const mouseX = event.clientX - document.getElementById("gameContainer").getBoundingClientRect().left
+  const mouseY = event.clientY - document.getElementById("gameContainer").getBoundingClientRect().top
+
+  let cursor = "default"
+
+  if (estado === "jugando") {
+    // Botón SALIR
+    if (mouseX >= 680 && mouseX <= 780 && mouseY >= 20 && mouseY <= 50) {
+      cursor = "pointer"
+    }
+  } else if (estado === "confirmacion") {
+    // Botones SÍ y NO
+    if (
+      (mouseX >= 280 && mouseX <= 360 && mouseY >= 320 && mouseY <= 360) ||
+      (mouseX >= 440 && mouseX <= 520 && mouseY >= 320 && mouseY <= 360)
+    ) {
+      cursor = "pointer"
+    }
+  }
+
+  document.getElementById("gameContainer").style.cursor = cursor
+}
+
 // === CLASES ===
 class Jugador {
   constructor(x, col, izq, der, salto, patear, nombre) {
     this.x = x
-    this.y = windowHeight - 120
+    this.y = 380
     this.vy = 0
     this.color = col
     this.nombre = nombre
-    this.radioCabeza = 25
-    this.altura = 90
+    this.radioCabeza = 20
+    this.altura = 70
     this.izquierda = false
     this.derecha = false
     this.saltando = false
     this.teclas = { izq, der, salto, patear }
     this.pateando = false
     this.tiempoPateo = 0
-    this.velocidad = 6
-    this.fuerzaSalto = 14
+    this.velocidad = 3.75
+    this.fuerzaSalto = 12
     this.animacion = 0
   }
 
@@ -526,13 +607,13 @@ class Jugador {
     if (this.izquierda) this.x -= this.velocidad
     if (this.derecha) this.x += this.velocidad
 
-    this.x = constrain(this.x, 30, windowWidth - 30)
+    this.x = constrain(this.x, 50, 750)
 
-    this.vy += 0.7
+    this.vy += 0.6
     this.y += this.vy
 
-    if (this.y > windowHeight - this.altura) {
-      this.y = windowHeight - this.altura
+    if (this.y > 430) {
+      this.y = 430
       this.vy = 0
       this.saltando = false
     }
@@ -544,40 +625,64 @@ class Jugador {
     this.animacion += 0.1
   }
 
+  colisionConJugador(otroJugador) {
+    const distancia = dist(this.x, this.y, otroJugador.x, otroJugador.y)
+    if (distancia < this.radioCabeza * 2) {
+      const angulo = Math.atan2(this.y - otroJugador.y, this.x - otroJugador.x)
+      const separacion = this.radioCabeza * 2 - distancia
+
+      this.x += Math.cos(angulo) * separacion * 0.5
+      this.y += Math.sin(angulo) * separacion * 0.5
+
+      otroJugador.x -= Math.cos(angulo) * separacion * 0.5
+      otroJugador.y -= Math.sin(angulo) * separacion * 0.5
+
+      this.x = constrain(this.x, 50, 750)
+      otroJugador.x = constrain(otroJugador.x, 50, 750)
+      this.y = constrain(this.y, 50, 430)
+      otroJugador.y = constrain(otroJugador.y, 50, 430)
+    }
+  }
+
   mostrar() {
     push()
     translate(this.x, this.y)
 
     fill(0, 0, 0, 50)
-    ellipse(0, this.altura + 10, this.radioCabeza * 2, 10)
+    ellipse(0, this.altura + 8, this.radioCabeza * 2, 8)
 
     fill(this.color[0], this.color[1], this.color[2])
     ellipse(0, 0, this.radioCabeza * 2)
 
     fill(255)
-    ellipse(-8, -5, 6)
-    ellipse(8, -5, 6)
+    ellipse(-6, -4, 5)
+    ellipse(6, -4, 5)
     fill(0)
-    ellipse(-8, -5, 3)
-    ellipse(8, -5, 3)
+    ellipse(-6, -4, 2)
+    ellipse(6, -4, 2)
 
     fill(this.color[0], this.color[1], this.color[2])
-    rect(-15, 25, 30, 40, 8)
+    rect(-12, 20, 24, 32, 6)
 
     stroke(this.color[0] - 50, this.color[1] - 50, this.color[2] - 50)
-    strokeWeight(6)
-    const brazoOffset = sin(this.animacion) * 5
-    line(-15, 35, -25, 45 + brazoOffset)
-    line(15, 35, 25, 45 - brazoOffset)
+    strokeWeight(4)
+    const brazoOffset = Math.sin(this.animacion) * 3
+    line(-12, 28, -20, 36 + brazoOffset)
+    line(12, 28, 20, 36 - brazoOffset)
 
-    strokeWeight(8)
+    strokeWeight(6)
     if (this.pateando) {
-      line(0, 60, 25, 45)
-      line(0, 60, -5, 90)
+      if (this.nombre === "AZUL") {
+        line(0, 48, -20, 36)
+        line(0, 48, 4, 70)
+      } else {
+        line(0, 48, 20, 36)
+        line(0, 48, -4, 70)
+      }
     } else {
-      const piernaOffset = this.izquierda || this.derecha ? sin(this.animacion * 2) * 3 : 0
-      line(-8, 60, -8, 90 + piernaOffset)
-      line(8, 60, 8, 90 - piernaOffset)
+      const piernaOffset = this.izquierda || this.derecha ? Math.sin(this.animacion * 2) * 2 : 0
+      line(-6, 48, -6, 70 + piernaOffset)
+      line(6, 48, 6, 70 - piernaOffset)
     }
 
     noStroke()
@@ -585,23 +690,51 @@ class Jugador {
 
     fill(255)
     textAlign(CENTER, BOTTOM)
-    textSize(12)
-    text(this.nombre, this.x, this.y - 35)
+    textSize(10)
+    text(this.nombre, this.x, this.y - 25)
   }
 
   patear() {
-    const pieX = this.pateando ? this.x + 25 : this.x
-    const pieY = this.y + 45
+    const pieX = this.pateando ? this.x + 20 : this.x
+    const pieY = this.y + 48 // Cambiado de 36 a 48 para que coincida con los pies
     const d = dist(pieX, pieY, pelota.x, pelota.y)
 
-    if (d < 50) {
-      const fuerzaX = (pelota.x - this.x) * 0.5
-      const fuerzaY = -12
+    if (d < 40) {
+      let fuerzaX, fuerzaY
+
+      const distanciaPelota = d
+      const estaSaltando = this.saltando || this.vy < 0
+
+      if (this.nombre === "AZUL") {
+        if (estaSaltando) {
+          fuerzaX = -8
+          fuerzaY = 0
+        } else if (distanciaPelota < 20) {
+          fuerzaX = -3
+          fuerzaY = -15
+        } else {
+          fuerzaX = (pelota.x - this.x) * 0.4
+          if (fuerzaX > 0) fuerzaX = -Math.abs(fuerzaX)
+          fuerzaY = -10
+        }
+      } else {
+        if (estaSaltando) {
+          fuerzaX = 8
+          fuerzaY = 0
+        } else if (distanciaPelota < 20) {
+          fuerzaX = 3
+          fuerzaY = -15
+        } else {
+          fuerzaX = (pelota.x - this.x) * 0.4
+          if (fuerzaX < 0) fuerzaX = Math.abs(fuerzaX)
+          fuerzaY = -10
+        }
+      }
 
       pelota.vx += fuerzaX
       pelota.vy = fuerzaY
 
-      crearParticulas(pieX, pieY, this.color, 10)
+      crearParticulas(pieX, pieY, this.color, 8)
     }
 
     this.pateando = true
@@ -631,15 +764,15 @@ class Jugador {
 
 class Pelota {
   constructor() {
-    this.r = 20
+    this.r = 12.75
     this.trail = []
     this.reset()
   }
 
   reset() {
-    this.x = windowWidth / 2
-    this.y = windowHeight - 150
-    this.vx = random(-4, 4)
+    this.x = 400
+    this.y = 430
+    this.vx = Math.random() * 6 - 3
     this.vy = 0
     this.trail = []
     this.rotacion = 0
@@ -647,24 +780,24 @@ class Pelota {
 
   actualizar() {
     this.trail.push({ x: this.x, y: this.y })
-    if (this.trail.length > 8) {
+    if (this.trail.length > 6) {
       this.trail.shift()
     }
 
     this.x += this.vx
     this.y += this.vy
-    this.vy += 0.6
+    this.vy += 0.5
     this.rotacion += this.vx * 0.1
 
-    if (this.y > windowHeight - this.r - 30) {
-      this.y = windowHeight - this.r - 30
-      this.vy *= -0.75
-      crearParticulas(this.x, this.y + this.r, [139, 69, 19], 5)
+    if (this.y > 500 - this.r) {
+      this.y = 500 - this.r
+      this.vy *= -0.7
+      crearParticulas(this.x, this.y + this.r, [139, 69, 19], 4)
     }
 
-    if (this.x < this.r || this.x > windowWidth - this.r) {
-      this.vx *= -0.85
-      this.x = constrain(this.x, this.r, windowWidth - this.r)
+    if (this.x < this.r || this.x > 800 - this.r) {
+      this.vx *= -0.8
+      this.x = constrain(this.x, this.r, 800 - this.r)
     }
 
     this.vx *= 0.995
@@ -672,9 +805,9 @@ class Pelota {
 
   mostrar() {
     for (let i = 0; i < this.trail.length; i++) {
-      const alpha = map(i, 0, this.trail.length - 1, 0, 100)
+      const alpha = map(i, 0, this.trail.length - 1, 0, 80)
       fill(255, 255, 0, alpha)
-      const size = map(i, 0, this.trail.length - 1, this.r * 0.5, this.r * 2)
+      const size = map(i, 0, this.trail.length - 1, this.r * 0.5, this.r * 1.5)
       ellipse(this.trail[i].x, this.trail[i].y, size)
     }
 
@@ -689,11 +822,11 @@ class Pelota {
     ellipse(0, 0, this.r * 2)
 
     fill(0)
-    for (let i = 0; i < 6; i++) {
-      const angle = (i * Math.PI) / 3
-      const x = Math.cos(angle) * 8
-      const y = Math.sin(angle) * 8
-      ellipse(x, y, 4)
+    for (let i = 0; i < 5; i++) {
+      const angle = (i * Math.PI) / 2.5
+      const x = Math.cos(angle) * 6
+      const y = Math.sin(angle) * 6
+      ellipse(x, y, 3)
     }
 
     pop()
@@ -702,45 +835,63 @@ class Pelota {
   rebotarConJugador(jugador) {
     const puntos = [
       { x: jugador.x, y: jugador.y },
-      { x: jugador.x, y: jugador.y + 30 },
-      { x: jugador.x, y: jugador.y + 60 },
+      { x: jugador.x, y: jugador.y + 25 },
+      { x: jugador.x, y: jugador.y + 50 },
     ]
 
     for (const punto of puntos) {
       this.rebotePunto(punto.x, punto.y)
     }
   }
-
   rebotePunto(px, py) {
-    const d = dist(this.x, this.y, px, py)
-    if (d < this.r + 20) {
-      const angle = Math.atan2(this.y - py, this.x - px)
-      const fuerza = map(d, 0, this.r + 20, 8, 4)
-      this.vx = Math.cos(angle) * fuerza
-      this.vy = Math.sin(angle) * fuerza
+    const d = dist(this.x, this.y, px, py);
 
-      this.x = px + Math.cos(angle) * (this.r + 21)
-      this.y = py + Math.sin(angle) * (this.r + 21)
+    if (d < this.r + 16) {
+        const fuerza = map(d, 0, this.r + 16, 6, 3);
+        const angle = Math.atan2(this.y - py, this.x - px);
+
+        if (d < 10) {
+            this.vy = -fuerza * 1.5;
+            const direccionAleatoria = random(-1, 1);
+            this.vx = direccionAleatoria * fuerza;
+
+            // No reposicionamos en rebote aleatorio
+        } else {
+            this.vx = Math.cos(angle) * fuerza;
+            this.vy = Math.sin(angle) * fuerza;
+
+            // Reposicionamiento suave para evitar múltiples colisiones
+            const separacion = 2; // solo 2 píxeles
+            this.x += Math.cos(angle) * separacion;
+            this.y += Math.sin(angle) * separacion;
+        }
+
+        // Verificación: evitar que la pelota se salga del canvas
+        this.x = constrain(this.x, this.r, width - this.r);
+        this.y = constrain(this.y, this.r, height - this.r);
     }
-  }
 }
+
+}
+
+
 
 class Particula {
   constructor(x, y, color) {
     this.x = x
     this.y = y
-    this.vx = random(-5, 5)
-    this.vy = random(-8, -2)
+    this.vx = Math.random() * 8 - 4
+    this.vy = Math.random() * -5 - 1
     this.color = color
-    this.vida = 60
-    this.vidaMaxima = 60
-    this.tamaño = random(3, 8)
+    this.vida = 40
+    this.vidaMaxima = 40
+    this.tamaño = Math.random() * 4 + 2
   }
 
   actualizar() {
     this.x += this.vx
     this.y += this.vy
-    this.vy += 0.2
+    this.vy += 0.15
     this.vida--
     this.vx *= 0.98
   }
@@ -752,9 +903,186 @@ class Particula {
   }
 }
 
-function windowResized() {
-  resizeCanvas(window.innerWidth, window.innerHeight)
-  if (jugador1) jugador1.x = constrain(jugador1.x, 30, window.innerWidth - 30)
-  if (jugador2) jugador2.x = constrain(jugador2.x, 30, window.innerWidth - 30)
+// Función para reiniciar posiciones después de gol
+function reiniciarPosiciones() {
+  jugador1.x = 150
+  jugador1.y = 380
+  jugador1.vy = 0
+  jugador2.x = 650
+  jugador2.y = 380
+  jugador2.vy = 0
+  pelota.x = 400
+  pelota.y = 430
+  pelota.vx = Math.random() * 6 - 3
+  pelota.vy = 0
+  pelota.trail = []
 }
 
+// Estas funciones serán sobrescritas por p5.js cuando se cargue
+function createCanvas(width, height) {
+  return window.p5.createCanvas ? window.p5.createCanvas(width, height) : null
+}
+
+function push() {
+  if (window.p5.push) window.p5.push()
+}
+
+function pop() {
+  if (window.p5.pop) window.p5.pop()
+}
+
+function translate(x, y) {
+  if (window.p5.translate) window.p5.translate(x, y)
+}
+
+function rotate(angle) {
+  if (window.p5.rotate) window.p5.rotate(angle)
+}
+
+function sin(value) {
+  return Math.sin(value)
+}
+
+function fill(...args) {
+  if (window.p5.fill) window.p5.fill(...args)
+}
+
+function textAlign(horizontal, vertical) {
+  if (window.p5.textAlign) window.p5.textAlign(horizontal, vertical)
+}
+
+function textSize(size) {
+  if (window.p5.textSize) window.p5.textSize(size)
+}
+
+function textStyle(style) {
+  if (window.p5.textStyle) window.p5.textStyle(style)
+}
+
+function text(content, x, y) {
+  if (window.p5.text) window.p5.text(content, x, y)
+}
+
+function rect(x, y, width, height, radius) {
+  if (window.p5.rect) window.p5.rect(x, y, width, height, radius)
+}
+
+function stroke(...args) {
+  if (window.p5.stroke) window.p5.stroke(...args)
+}
+
+function strokeWeight(weight) {
+  if (window.p5.strokeWeight) window.p5.strokeWeight(weight)
+}
+
+function line(x1, y1, x2, y2) {
+  if (window.p5.line) window.p5.line(x1, y1, x2, y2)
+}
+
+function noFill() {
+  if (window.p5.noFill) window.p5.noFill()
+}
+
+function ellipse(x, y, diameter) {
+  if (window.p5.ellipse) window.p5.ellipse(x, y, diameter)
+}
+
+function noStroke() {
+  if (window.p5.noStroke) window.p5.noStroke()
+}
+
+function millis() {
+  return window.p5.millis ? window.p5.millis() : Date.now()
+}
+
+function map(value, start1, stop1, start2, stop2) {
+  return window.p5.map
+    ? window.p5.map(value, start1, stop1, start2, stop2)
+    : start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1))
+}
+
+function lerpColor(color1, color2, amount) {
+  return window.p5.lerpColor ? window.p5.lerpColor(color1, color2, amount) : color1
+}
+
+function color(r, g, b) {
+  return window.p5.color ? window.p5.color(r, g, b) : { r, g, b }
+}
+
+function constrain(value, min, max) {
+  return Math.max(min, Math.min(max, value))
+}
+
+function dist(x1, y1, x2, y2) {
+  return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))
+}
+
+function loadImage(url) {
+  if (window.p5 && window.p5.loadImage) {
+    return window.p5.loadImage(url)
+  }
+  // Fallback para navegadores sin p5.js
+  const img = new Image()
+  img.src = url
+  return img
+}
+
+function image(img, x, y, width, height) {
+  if (window.p5 && window.p5.image) {
+    window.p5.image(img, x, y, width, height)
+  }
+}
+
+document.addEventListener("keydown", (event) => {
+  key = event.key
+  keyCode = event.keyCode
+  window.p5.keyPressed()
+})
+
+document.addEventListener("keyup", (event) => {
+  key = event.key
+  keyCode = event.keyCode
+  window.p5.keyReleased()
+})
+
+document.addEventListener("mousedown", (event) => {
+  if (window.p5 && window.p5.mousePressed) {
+    window.p5.mousePressed()
+  }
+})
+
+document.addEventListener("mousemove", (event) => {
+  if (window.p5 && window.p5.mouseMoved) {
+    window.p5.mouseMoved()
+  }
+  
+})
+// Registro
+document.getElementById("formRegistro").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  let datos = new FormData();
+  datos.append("nombre", document.getElementById("regNombre").value);
+  datos.append("email", document.getElementById("regEmail").value);
+  datos.append("contrasena", document.getElementById("regPass").value);
+
+  let res = await fetch("registro.php", { method: "POST", body: datos });
+  let txt = await res.text();
+  alert(txt);
+});
+
+// Login
+document.getElementById("formLogin").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  let datos = new FormData();
+  datos.append("email", document.getElementById("logEmail").value);
+  datos.append("contrasena", document.getElementById("logPass").value);
+
+  let res = await fetch("login.php", { method: "POST", body: datos });
+  let txt = await res.text();
+  alert(txt);
+
+  // Podrías guardar el usuario logueado en localStorage
+  if (txt.includes("Login exitoso")) {
+    localStorage.setItem("usuario", txt);
+  }
+})
