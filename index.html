@@ -14,6 +14,15 @@
 </head>
 
 <body>
+  <script>
+    document.addEventListener("keydown", function(event) {
+      // Teclas que querés bloquear
+      if (event.code === "ArrowUp" || event.code === "ArrowDown" || event.code === "Space") {
+        event.preventDefault(); // Evita el scroll o acción por defecto
+        console.log("Bloqueada: " + event.code);
+      }
+    });
+  </script>
   <header class="header">
     <h1>⚽ Fútbol 2D - Cabezones Tec</h1>
     <p>¡El juego de fútbol más divertido para dos jugadores!</p>
