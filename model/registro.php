@@ -82,10 +82,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmtStats->bind_param("i", $user_id);
 
         if ($stmtStats->execute()) {
-            echo json_encode([
+           echo json_encode([
                 'success' => true,
-                'message' => 'Usuario registrado exitosamente'
-            ]);
+                'message' => 'Usuario registrado exitosamente',
+                'user' => [
+                'id' => $user_id,
+                'usuario' => $usuario
+            ]
+    ]);
         } else {
             echo json_encode([
                 'success' => false,

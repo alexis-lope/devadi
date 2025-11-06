@@ -29,6 +29,12 @@ let mensajeAuthColor = [255, 255, 255]
 let cursorVisible = true
 let ultimoParpadeo = 0
 
+
+
+
+
+
+
 // === CONSTANTES DE P5.JS Y TECLAS ===
 const CENTER = "center"
 const LEFT = "left"
@@ -53,10 +59,16 @@ function setup() {
   const canvas = createCanvas(800, 600)
   canvas.parent("gameContainer")
   imagenCampo = loadImage(
-    "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/2.jpg-mL2NgEz0Og7hiWN1JuAIWWu288Xt7S.jpeg",
+    "img/cancha1.jpeg",
   )
   inicializarJuego()
 }
+
+
+
+
+
+
 
 // === FUNCIÓN PRINCIPAL DE DIBUJO ===
 function draw() {
@@ -324,30 +336,37 @@ function limpiarCamposAuth() {
 /* ------------------------------------------
    CARGA DE ESTADÍSTICAS
    ------------------------------------------ */
-async function cargarEstadisticas() {
-  if (!usuarioActual) return
-
-  try {
-    const response = await fetch(`model/stats.php?user_id=${encodeURIComponent(usuarioActual.id)}`)
-    const data = await response.json()
-
-    if (data.success) {
-      estadisticasData = data.stats
-    } else {
-      estadisticasData = null
-      console.warn("stats.php respondió sin éxito:", data)
+   async function cargarEstadisticas() {
+    if (!usuarioActual) return;
+  
+    try {
+      const response = await fetch("model/stats.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ usuario: usuarioActual.usuario }) // <-- el PHP espera "usuario"
+      });
+  
+      const data = await response.json();
+  
+      if (data.success) {
+        estadisticasData = data.stats;
+      } else {
+        estadisticasData = null;
+        console.warn("stats.php respondió sin éxito:", data);
+      }
+    } catch (error) {
+      console.error("Error cargando estadísticas:", error);
+      estadisticasData = null;
     }
-  } catch (error) {
-    console.error("Error cargando estadísticas:", error)
-    estadisticasData = null
   }
-}
 
 /* ------------------------------------------
    INICIALIZACIÓN Y MENÚ
    ------------------------------------------ */
 function inicializarJuego() {
-  jugador1 = new Jugador(150, [255, 69, 0], "a", "d", "w", "r", "ROJO")
+  jugador1 = new Jugador(150, [255, 69, 0], 65, 68, 87, 82, "ROJO")
   jugador2 = new Jugador(650, [30, 144, 255], LEFT_ARROW, RIGHT_ARROW, UP_ARROW, 76, "AZUL")
   pelota = new Pelota()
   goles1 = 0
@@ -387,7 +406,7 @@ function mostrarMenu() {
 
   fill(255)
   textSize(16)
-  text(`Jugador: ${usuarioActual ? usuarioActual.username : "Invitado"}`, 400, 500)
+  text(`Jugador: ${usuarioActual ? usuarioActual.usuario : "Invitado"}`, 400, 500)
 
   fill(200)
   textSize(14)
@@ -411,8 +430,8 @@ function mostrarInstrucciones() {
   const instrucciones = [
     "🎯 OBJETIVO: Marca más goles que tu oponente",
     "",
-    "🔴 JUGADOR ROJO: ← → mover, ↑ saltar, R patear",
-    "🔵 JUGADOR AZUL: A/D mover, W saltar, L patear",
+    "🔴 JUGADOR ROJO: ← → mover, ↑ saltar, L patear",
+    "🔵 JUGADOR AZUL: A/D mover, W saltar, R patear",
     "",
     "⚽ CONTROLES: P pausar, ESPACIO confirmar",
   ]
@@ -433,98 +452,93 @@ function mostrarInstrucciones() {
 }
 
 function mostrarEstadisticas() {
-  fill(0, 0, 0, 150)
-  rect(0, 0, 800, 600)
+  fill(0, 0, 0, 150);
+  rect(0, 0, 800, 600);
 
-  fill(255, 255, 255, 250)
-  rect(150, 80, 500, 480, 16)
+  fill(255, 255, 255, 250);
+  rect(150, 80, 500, 480, 16);
 
-  fill(59, 130, 246)
-  rect(150, 80, 500, 80, 16)
-  rect(150, 140, 500, 20)
+  fill(59, 130, 246);
+  rect(150, 80, 500, 80, 16);
+  rect(150, 140, 500, 20);
 
-  fill(255)
-  textAlign(CENTER, CENTER)
-  textSize(28)
-  textStyle(BOLD)
-  text(usuarioActual ? usuarioActual.username : "Usuario", 400, 110)
-  textSize(14)
-  textStyle(NORMAL)
-  text("Estadísticas del Jugador", 400, 140)
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(28);
+  textStyle(BOLD);
+  text(usuarioActual ? usuarioActual.username : "Usuario", 400, 110);
+  textSize(14);
+  textStyle(NORMAL);
+  text("Estadísticas del Jugador", 400, 140);
 
   if (estadisticasData) {
     const stats = [
-      { label: "Partidos Jugados", value: estadisticasData.partidos_jugados },
-      { label: "Victorias", value: estadisticasData.victorias },
-      { label: "Derrotas", value: estadisticasData.derrotas },
-      { label: "Empates", value: estadisticasData.empates },
-      { label: "Goles a Favor", value: estadisticasData.goles_totales },
-      { label: "Goles en Contra", value: estadisticasData.goles_recibidos },
-    ]
+      { label: "Victorias pj1", value: estadisticasData.victorias },
+      { label: "Victorias pj2", value: estadisticasData.derrotas },
+      { label: "Goles pj1", value: estadisticasData.goles_favor },
+      { label: "Goles pj2", value: estadisticasData.goles_contra },
+    ];
 
-    let x = 180
-    let y = 200
+    let x = 180;
+    let y = 200;
     for (let i = 0; i < stats.length; i++) {
-      fill(243, 244, 246)
-      rect(x, y, 210, 90, 12)
+      fill(243, 244, 246);
+      rect(x, y, 210, 90, 12);
 
-      fill(107, 114, 128)
-      textSize(12)
-      textStyle(BOLD)
-      text(stats[i].label, x + 105, y + 25)
+      fill(107, 114, 128);
+      textSize(12);
+      textStyle(BOLD);
+      text(stats[i].label, x + 105, y + 25);
 
-      fill(30, 58, 138)
-      textSize(32)
-      textStyle(BOLD)
-      text(stats[i].value, x + 105, y + 60)
+      fill(30, 58, 138);
+      textSize(32);
+      textStyle(BOLD);
+      text(stats[i].value, x + 105, y + 60);
 
-      x += 230
-      if (i === 2) {
-        x = 180
-        y = 310
+      x += 230;
+      if (i === 1) {
+        x = 180;
+        y = 310;
       }
     }
 
-    const winRate =
-      estadisticasData.partidos_jugados > 0
-        ? ((estadisticasData.victorias / estadisticasData.partidos_jugados) * 100).toFixed(1)
-        : 0
-    const avgGoles =
-      estadisticasData.partidos_jugados > 0
-        ? (estadisticasData.goles_totales / estadisticasData.partidos_jugados).toFixed(1)
-        : 0
+    // Partidos Jugados y Empates en la parte inferior
+    const bottomStats = [
+      { label: "Partidos Jugados", value: estadisticasData.partidos },
+      { label: "Empates", value: estadisticasData.empates },
+    ];
 
-    fill(243, 244, 246)
-    rect(180, 420, 210, 90, 12)
-    fill(107, 114, 128)
-    textSize(12)
-    text("Tasa de Victoria", 285, 445)
-    fill(30, 58, 138)
-    textSize(32)
-    text(winRate + "%", 285, 480)
+    x = 180;
+    y = 420;
+    for (let i = 0; i < bottomStats.length; i++) {
+      fill(243, 244, 246);
+      rect(x, y, 210, 90, 12);
 
-    fill(243, 244, 246)
-    rect(410, 420, 210, 90, 12)
-    fill(107, 114, 128)
-    textSize(12)
-    text("Promedio de Goles", 515, 445)
-    fill(30, 58, 138)
-    textSize(32)
-    text(avgGoles, 515, 480)
+      fill(107, 114, 128);
+      textSize(12);
+      textStyle(BOLD);
+      text(bottomStats[i].label, x + 105, y + 25);
+
+      fill(30, 58, 138);
+      textSize(32);
+      textStyle(BOLD);
+      text(bottomStats[i].value, x + 105, y + 60);
+
+      x += 230;
+    }
   } else {
-    fill(107, 114, 128)
-    textSize(16)
-    text("Cargando estadísticas...", 400, 300)
+    fill(107, 114, 128);
+    textSize(16);
+    text("Cargando estadísticas...", 400, 300);
   }
 
-  fill(239, 68, 68)
-  rect(300, 530, 200, 40, 10)
-  fill(255)
-  textSize(18)
-  textStyle(BOLD)
-  text("VOLVER (ESC)", 400, 550)
+  fill(239, 68, 68);
+  rect(300, 530, 200, 40, 10);
+  fill(255);
+  textSize(18);
+  textStyle(BOLD);
+  text("VOLVER (ESC)", 400, 550);
 }
-
 /* ------------------------------------------
    MODO JUEGO / PAUSA / FIN / CONFIRMACIÓN
    ------------------------------------------ */
@@ -1166,21 +1180,35 @@ class Pelota {
       this.rebotePunto(punto.x, punto.y)
     }
   }
-
   rebotePunto(px, py) {
-    const d = dist(this.x, this.y, px, py)
+    const d = dist(this.x, this.y, px, py);
+
     if (d < this.r + 16) {
-      const angle = Math.atan2(this.y - py, this.x - px)
-      const fuerza = map(d, 0, this.r + 16, 6, 3)
-      this.vx = Math.cos(angle) * fuerza
-      this.vy = Math.sin(angle) * fuerza
+        const fuerza = map(d, 0, this.r + 16, 6, 3);
+        const angle = Math.atan2(this.y - py, this.x - px);
 
-      this.x = px + Math.cos(angle) * (this.r + 16)
-      this.y = py + Math.sin(angle) * (this.r + 16)
+        if (d < 10) {
+            this.vy = -fuerza * 1.5;
+            const direccionAleatoria = random(-1, 1);
+            this.vx = direccionAleatoria * fuerza;
 
-      crearParticulas(this.x, this.y, [255, 255, 0], 5)
+            // No reposicionamos en rebote aleatorio
+        } else {
+            this.vx = Math.cos(angle) * fuerza;
+            this.vy = Math.sin(angle) * fuerza;
+
+            // Reposicionamiento suave para evitar múltiples colisiones
+            const separacion = 2; // solo 2 píxeles
+            this.x += Math.cos(angle) * separacion;
+            this.y += Math.sin(angle) * separacion;
+        }
+
+        // Verificación: evitar que la pelota se salga del canvas
+        this.x = constrain(this.x, this.r, width - this.r);
+        this.y = constrain(this.y, this.r, height - this.r);
     }
-  }
+}
+
 }
 
 class Particula {
@@ -1358,7 +1386,10 @@ async function guardarResultadoPartido(g1, g2) {
       }),
     })
 
-    const data = await response.json()
+    const raw = await response.text()  // <-- cambia aca
+    console.log("RAW RESPONSE:", raw)  // <-- vas a ver el error real
+
+    const data = JSON.parse(raw)
 
     if (!data.success) {
       console.error("Error guardando resultado del partido:", data.message)

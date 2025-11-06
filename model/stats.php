@@ -34,8 +34,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $user = $result->fetch_assoc();
     $usuario_id = $user["id"];
 
-    // Obtener estadísticas
-    $stmt = $conn->prepare("SELECT partidos, victorias, empates, derrotas FROM estadisticas WHERE usuario_id = ?");
+    // Obtener estadísticas (ahora con goles)
+    $stmt = $conn->prepare("
+        SELECT partidos, victorias, empates, derrotas, goles_favor, goles_contra 
+        FROM estadisticas 
+        WHERE usuario_id = ?
+    ");
     $stmt->bind_param("i", $usuario_id);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -47,12 +51,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 "partidos" => (int)$row["partidos"],
                 "victorias" => (int)$row["victorias"],
                 "empates" => (int)$row["empates"],
-                "derrotas" => (int)$row["derrotas"]
+                "derrotas" => (int)$row["derrotas"],
+                "goles_favor" => (int)$row["goles_favor"],
+                "goles_contra" => (int)$row["goles_contra"]
             ]
         ]);
     } else {
-        // Si el usuario no tiene estadísticas, crear una vacía
-        $stmtInsert = $conn->prepare("INSERT INTO estadisticas (usuario_id, partidos, victorias, empates, derrotas) VALUES (?, 0, 0, 0, 0)");
+        // Si el usuario no tiene estadísticas, crear una vacía (ahora con goles)
+        $stmtInsert = $conn->prepare("
+            INSERT INTO estadisticas 
+            (usuario_id, partidos, victorias, empates, derrotas, goles_favor, goles_contra) 
+            VALUES (?, 0, 0, 0, 0, 0, 0)
+        ");
         $stmtInsert->bind_param("i", $usuario_id);
         $stmtInsert->execute();
 
@@ -62,7 +72,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 "partidos" => 0,
                 "victorias" => 0,
                 "empates" => 0,
-                "derrotas" => 0
+                "derrotas" => 0,
+                "goles_favor" => 0,
+                "goles_contra" => 0
             ]
         ]);
     }

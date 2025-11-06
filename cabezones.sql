@@ -33,7 +33,9 @@ CREATE TABLE `estadisticas` (
   `partidos` int(11) DEFAULT 0,
   `victorias` int(11) DEFAULT 0,
   `empates` int(11) DEFAULT 0,
-  `derrotas` int(11) DEFAULT 0
+  `derrotas` int(11) DEFAULT 0,
+  `goles_favor` int(11) DEFAULT 0,
+  `goles_contra` int(11) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish2_ci;
 
 -- --------------------------------------------------------
