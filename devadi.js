@@ -1,4 +1,3 @@
-
 // === VARIABLES GLOBALES ===
 let jugador1, jugador2, pelota
 let goles1 = 0,
@@ -9,7 +8,7 @@ const duracion = 90
 let estado = "login" // Empezar en login
 const particulas = []
 let efectoGol = null
-const puntajeMaximo = 5
+const puntajeMaximo = 100
 let animacionTitulo = 0
 let menuSeleccion = 0
 let confirmacionSeleccion = 0
@@ -29,6 +28,23 @@ let mensajeAuthColor = [255, 255, 255]
 let cursorVisible = true
 let ultimoParpadeo = 0
 
+const hechosHistoricos = [
+  "El primer Mundial de Fútbol se jugó en Uruguay en 1930",
+  "Pelé es el único jugador en ganar 3 Copas del Mundo (1958, 1962, 1970)",
+  "El gol más rápido en un Mundial fue marcado a los 11 segundos por Hakan Şükür",
+  "Diego Maradona marcó el 'Gol del Siglo' contra Inglaterra en 1986",
+  "Lionel Messi ganó 8 Balones de Oro, más que cualquier otro jugador",
+  "Brasil es el único país que ha participado en todos los Mundiales",
+  "El partido con más goles fue Austria 7-5 Suiza en el Mundial de 1954",
+  "Cristiano Ronaldo es el máximo goleador de selecciones con más de 130 goles",
+  "La Copa del Mundo de 2014 tuvo 171 goles, récord del torneo",
+  "Zinedine Zidane marcó un gol de cabeza en la final del Mundial 1998",
+  "El Real Madrid ha ganado la Champions League 15 veces",
+  "Lev Yashin es el único arquero que ha ganado el Balón de Oro (1963)",
+  "El fútbol se jugó por primera vez en los Juegos Olímpicos en 1900",
+  "La primera Copa América se disputó en Argentina en 1916",
+  "Ronaldo Nazário marcó 15 goles en Copas del Mundo, récord hasta 2006",
+]
 
 // === CONSTANTES DE P5.JS Y TECLAS ===
 const CENTER = "center"
@@ -54,14 +70,10 @@ function setup() {
   const canvas = createCanvas(800, 600)
   canvas.parent("gameContainer")
   imagenCampo = loadImage(
-    "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/2.jpg-mL2NgEz0Og7hiWN1JuAIWWu288Xt7S.jpeg",
+    "img/cancha1.jpeg",
   )
   inicializarJuego()
 }
-
-
-
-
 
 // === FUNCIÓN PRINCIPAL DE DIBUJO ===
 function draw() {
@@ -106,6 +118,7 @@ function draw() {
 /* ------------------------------------------
    PANTALLA LOGIN / REGISTRO
    ------------------------------------------ */
+
 function mostrarPantallaLogin() {
   push()
   translate(400, 120)
@@ -238,6 +251,7 @@ function dibujarCampoInput(label, valor, x, y, activo) {
 /* ------------------------------------------
    FUNCIONES DE AUTH (LOGIN / REGISTER)
    ------------------------------------------ */
+
 async function procesarLogin() {
   if (inputUsuario.trim() === "" || inputPassword.trim() === "") {
     mensajeAuth = "Por favor completa todos los campos"
@@ -329,35 +343,37 @@ function limpiarCamposAuth() {
 /* ------------------------------------------
    CARGA DE ESTADÍSTICAS
    ------------------------------------------ */
-   async function cargarEstadisticas() {
-    if (!usuarioActual) return;
-  
-    try {
-      const response = await fetch("model/stats.php", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ usuario: usuarioActual.usuario }) // <-- el PHP espera "usuario"
-      });
-  
-      const data = await response.json();
-  
-      if (data.success) {
-        estadisticasData = data.stats;
-      } else {
-        estadisticasData = null;
-        console.warn("stats.php respondió sin éxito:", data);
-      }
-    } catch (error) {
-      console.error("Error cargando estadísticas:", error);
-      estadisticasData = null;
+
+async function cargarEstadisticas() {
+  if (!usuarioActual) return
+
+  try {
+    const response = await fetch("model/stats.php", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ usuario: usuarioActual.usuario }),
+    })
+
+    const data = await response.json()
+
+    if (data.success) {
+      estadisticasData = data.stats
+    } else {
+      estadisticasData = null
+      console.warn("stats.php respondió sin éxito:", data)
     }
+  } catch (error) {
+    console.error("Error cargando estadísticas:", error)
+    estadisticasData = null
   }
+}
 
 /* ------------------------------------------
    INICIALIZACIÓN Y MENÚ
    ------------------------------------------ */
+
 function inicializarJuego() {
   jugador1 = new Jugador(150, [255, 69, 0], 65, 68, 87, 82, "ROJO")
   jugador2 = new Jugador(650, [30, 144, 255], LEFT_ARROW, RIGHT_ARROW, UP_ARROW, 76, "AZUL")
@@ -445,24 +461,24 @@ function mostrarInstrucciones() {
 }
 
 function mostrarEstadisticas() {
-  fill(0, 0, 0, 150);
-  rect(0, 0, 800, 600);
+  fill(0, 0, 0, 150)
+  rect(0, 0, 800, 600)
 
-  fill(255, 255, 255, 250);
-  rect(150, 80, 500, 480, 16);
+  fill(255, 255, 255, 250)
+  rect(150, 80, 500, 480, 16)
 
-  fill(59, 130, 246);
-  rect(150, 80, 500, 80, 16);
-  rect(150, 140, 500, 20);
+  fill(59, 130, 246)
+  rect(150, 80, 500, 80, 16)
+  rect(150, 140, 500, 20)
 
-  fill(255);
-  textAlign(CENTER, CENTER);
-  textSize(28);
-  textStyle(BOLD);
-  text(usuarioActual ? usuarioActual.username : "Usuario", 400, 110);
-  textSize(14);
-  textStyle(NORMAL);
-  text("Estadísticas del Jugador", 400, 140);
+  fill(255)
+  textAlign(CENTER, CENTER)
+  textSize(28)
+  textStyle(BOLD)
+  text(usuarioActual ? usuarioActual.username : "Usuario", 400, 110)
+  textSize(14)
+  textStyle(NORMAL)
+  text("Estadísticas del Jugador", 400, 140)
 
   if (estadisticasData) {
     const stats = [
@@ -470,71 +486,71 @@ function mostrarEstadisticas() {
       { label: "Victorias pj2", value: estadisticasData.derrotas },
       { label: "Goles pj1", value: estadisticasData.goles_favor },
       { label: "Goles pj2", value: estadisticasData.goles_contra },
-    ];
+    ]
 
-    let x = 180;
-    let y = 200;
+    let x = 180
+    let y = 200
     for (let i = 0; i < stats.length; i++) {
-      fill(243, 244, 246);
-      rect(x, y, 210, 90, 12);
+      fill(243, 244, 246)
+      rect(x, y, 210, 90, 12)
 
-      fill(107, 114, 128);
-      textSize(12);
-      textStyle(BOLD);
-      text(stats[i].label, x + 105, y + 25);
+      fill(107, 114, 128)
+      textSize(12)
+      textStyle(BOLD)
+      text(stats[i].label, x + 105, y + 25)
 
-      fill(30, 58, 138);
-      textSize(32);
-      textStyle(BOLD);
-      text(stats[i].value, x + 105, y + 60);
+      fill(30, 58, 138)
+      textSize(32)
+      textStyle(BOLD)
+      text(stats[i].value, x + 105, y + 60)
 
-      x += 230;
+      x += 230
       if (i === 1) {
-        x = 180;
-        y = 310;
+        x = 180
+        y = 310
       }
     }
 
-    // Partidos Jugados y Empates en la parte inferior
     const bottomStats = [
       { label: "Partidos Jugados", value: estadisticasData.partidos },
       { label: "Empates", value: estadisticasData.empates },
-    ];
+    ]
 
-    x = 180;
-    y = 420;
+    x = 180
+    y = 420
     for (let i = 0; i < bottomStats.length; i++) {
-      fill(243, 244, 246);
-      rect(x, y, 210, 90, 12);
+      fill(243, 244, 246)
+      rect(x, y, 210, 90, 12)
 
-      fill(107, 114, 128);
-      textSize(12);
-      textStyle(BOLD);
-      text(bottomStats[i].label, x + 105, y + 25);
+      fill(107, 114, 128)
+      textSize(12)
+      textStyle(BOLD)
+      text(bottomStats[i].label, x + 105, y + 25)
 
-      fill(30, 58, 138);
-      textSize(32);
-      textStyle(BOLD);
-      text(bottomStats[i].value, x + 105, y + 60);
+      fill(30, 58, 138)
+      textSize(32)
+      textStyle(BOLD)
+      text(bottomStats[i].value, x + 105, y + 60)
 
-      x += 230;
+      x += 230
     }
   } else {
-    fill(107, 114, 128);
-    textSize(16);
-    text("Cargando estadísticas...", 400, 300);
+    fill(107, 114, 128)
+    textSize(16)
+    text("Cargando estadísticas...", 400, 300)
   }
 
-  fill(239, 68, 68);
-  rect(300, 530, 200, 40, 10);
-  fill(255);
-  textSize(18);
-  textStyle(BOLD);
-  text("VOLVER (ESC)", 400, 550);
+  fill(239, 68, 68)
+  rect(300, 530, 200, 40, 10)
+  fill(255)
+  textSize(18)
+  textStyle(BOLD)
+  text("VOLVER (ESC)", 400, 550)
 }
 /* ------------------------------------------
    MODO JUEGO / PAUSA / FIN / CONFIRMACIÓN
    ------------------------------------------ */
+
 function modoJuego() {
   mostrarCancha()
 
@@ -663,6 +679,7 @@ function mostrarConfirmacionSalida() {
 /* ------------------------------------------
    CONTROLES (keyPressed / keyReleased)
    ------------------------------------------ */
+
 function keyPressed(event) {
   if (estado === "login") {
     if (event && event.keyCode === TAB) {
@@ -811,6 +828,7 @@ function keyReleased() {
 /* ------------------------------------------
    MOUSE (clicks / move)
    ------------------------------------------ */
+
 function mousePressed() {
   if (estado === "login") {
     const btnY = modoAuth === "login" ? 410 : 490
@@ -923,6 +941,7 @@ function mouseMoved() {
 /* ------------------------------------------
    CLASES: Jugador, Pelota, Particula
    ------------------------------------------ */
+
 class Jugador {
   constructor(x, col, izq, der, salto, patear, nombre) {
     this.x = x
@@ -1127,7 +1146,7 @@ class Pelota {
 
     if (this.x < this.r || this.x > 800 - this.r) {
       this.vx *= -0.8
-      this.x = constrain(this.x, this.r, 800 - this.r)
+      this.x = constrain(this.x, this.r, width - this.r)
     }
 
     this.vx *= 0.995
@@ -1174,34 +1193,29 @@ class Pelota {
     }
   }
   rebotePunto(px, py) {
-    const d = dist(this.x, this.y, px, py);
+    const d = dist(this.x, this.y, px, py)
 
     if (d < this.r + 16) {
-        const fuerza = map(d, 0, this.r + 16, 6, 3);
-        const angle = Math.atan2(this.y - py, this.x - px);
+      const fuerza = map(d, 0, this.r + 16, 6, 3)
+      const angle = Math.atan2(this.y - py, this.x - px)
 
-        if (d < 10) {
-            this.vy = -fuerza * 1.5;
-            const direccionAleatoria = random(-1, 1);
-            this.vx = direccionAleatoria * fuerza;
+      if (d < 10) {
+        this.vy = -fuerza * 1.5
+        const direccionAleatoria = random(-1, 1)
+        this.vx = direccionAleatoria * fuerza
+      } else {
+        this.vx = Math.cos(angle) * fuerza
+        this.vy = Math.sin(angle) * fuerza
 
-            // No reposicionamos en rebote aleatorio
-        } else {
-            this.vx = Math.cos(angle) * fuerza;
-            this.vy = Math.sin(angle) * fuerza;
+        const separacion = 2
+        this.x += Math.cos(angle) * separacion
+        this.y += Math.sin(angle) * separacion
+      }
 
-            // Reposicionamiento suave para evitar múltiples colisiones
-            const separacion = 2; // solo 2 píxeles
-            this.x += Math.cos(angle) * separacion;
-            this.y += Math.sin(angle) * separacion;
-        }
-
-        // Verificación: evitar que la pelota se salga del canvas
-        this.x = constrain(this.x, this.r, width - this.r);
-        this.y = constrain(this.y, this.r, height - this.r);
+      this.x = constrain(this.x, this.r, width - this.r)
+      this.y = constrain(this.y, this.r, height - this.r)
     }
-}
-
+  }
 }
 
 class Particula {
@@ -1234,6 +1248,7 @@ class Particula {
 /* ------------------------------------------
    FUNCIONES ÚTILES
    ------------------------------------------ */
+
 function reiniciarPosiciones() {
   jugador1.x = 150
   jugador1.y = 380
@@ -1339,14 +1354,16 @@ function actualizarParticulas() {
 function verificarGol() {
   if (pelota.x < 45 && pelota.y > 350 && pelota.y < 500) {
     goles2++
-    efectoGol = { jugador: 2, tiempo: millis() }
+    const hechoAleatorio = hechosHistoricos[Math.floor(Math.random() * hechosHistoricos.length)]
+    efectoGol = { jugador: 2, tiempo: millis(), hecho: hechoAleatorio }
     crearParticulas(pelota.x, pelota.y, [30, 144, 255], 30)
     reiniciarPosiciones()
   }
 
   if (pelota.x > 760 && pelota.y > 350 && pelota.y < 500) {
     goles1++
-    efectoGol = { jugador: 1, tiempo: millis() }
+    const hechoAleatorio = hechosHistoricos[Math.floor(Math.random() * hechosHistoricos.length)]
+    efectoGol = { jugador: 1, tiempo: millis(), hecho: hechoAleatorio }
     crearParticulas(pelota.x, pelota.y, [255, 69, 0], 30)
     reiniciarPosiciones()
   }
@@ -1379,8 +1396,8 @@ async function guardarResultadoPartido(g1, g2) {
       }),
     })
 
-    const raw = await response.text()  // <-- cambia aca
-    console.log("RAW RESPONSE:", raw)  // <-- vas a ver el error real
+    const raw = await response.text()
+    console.log("RAW RESPONSE:", raw)
 
     const data = JSON.parse(raw)
 
@@ -1393,16 +1410,67 @@ async function guardarResultadoPartido(g1, g2) {
 }
 
 function mostrarEfectoGol() {
-  if (millis() - efectoGol.tiempo < 2000) {
-    const alpha = map(millis() - efectoGol.tiempo, 0, 2000, 255, 0)
+  const tiempoTranscurrido = millis() - efectoGol.tiempo
 
-    fill(255, 255, 0, alpha)
+  if (tiempoTranscurrido < 3000) {
+    // Mensaje de gol principal
+    const alphaMensaje = map(tiempoTranscurrido, 0, 3000, 255, 0)
+
+    fill(255, 255, 0, alphaMensaje)
     textAlign(CENTER, CENTER)
     textSize(48)
     textStyle(BOLD)
 
     const mensaje = efectoGol.jugador === 1 ? "¡GOL ROJO!" : "¡GOL AZUL!"
-    text(mensaje, 400, 300)
+    text(mensaje, 400, 200)
+
+    let alphaBox = 255
+    if (tiempoTranscurrido < 200) {
+      alphaBox = map(tiempoTranscurrido, 0, 200, 0, 255)
+    } else if (tiempoTranscurrido > 3800) {
+      alphaBox = map(tiempoTranscurrido, 3800, 4000, 255, 0)
+    }
+
+    fill(0, 0, 0, alphaBox * 0.8)
+    rect(100, 350, 600, 120, 15)
+
+    stroke(255, 215, 0, alphaBox)
+    strokeWeight(3)
+    noFill()
+    rect(100, 350, 600, 120, 15)
+    noStroke()
+
+    fill(255, 215, 0, alphaBox)
+    textSize(24)
+    text("📚", 400, 375)
+
+    fill(255, 215, 0, alphaBox)
+    textSize(16)
+    textStyle(BOLD)
+    text("¿SABÍAS QUÉ?", 400, 395)
+
+    fill(255, 255, 255, alphaBox)
+    textSize(14)
+    textStyle(NORMAL)
+
+    // Dividir el texto en múltiples líneas si es muy largo
+    const palabras = efectoGol.hecho.split(" ")
+    let linea = ""
+    let yTexto = 420
+
+    for (let i = 0; i < palabras.length; i++) {
+      const testLinea = linea + palabras[i] + " "
+      const anchoLinea = textWidth(testLinea)
+
+      if (anchoLinea > 550 && i > 0) {
+        text(linea, 400, yTexto)
+        linea = palabras[i] + " "
+        yTexto += 20
+      } else {
+        linea = testLinea
+      }
+    }
+    text(linea, 400, yTexto)
   } else {
     efectoGol = null
   }
