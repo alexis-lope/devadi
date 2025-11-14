@@ -1410,67 +1410,53 @@ async function guardarResultadoPartido(g1, g2) {
 }
 
 function mostrarEfectoGol() {
-  const tiempoTranscurrido = millis() - efectoGol.tiempo
+  const tiempoTranscurrido = millis() - efectoGol.tiempo;
 
   if (tiempoTranscurrido < 3000) {
-    // Mensaje de gol principal
-    const alphaMensaje = map(tiempoTranscurrido, 0, 3000, 255, 0)
+    // === MENSAJE DE GOL (arriba) ===
+    const alphaMensaje = map(tiempoTranscurrido, 0, 3000, 255, 0);
 
-    fill(255, 255, 0, alphaMensaje)
-    textAlign(CENTER, CENTER)
-    textSize(48)
-    textStyle(BOLD)
+    fill(255, 255, 0, alphaMensaje);
+    textAlign(CENTER, CENTER);
+    textSize(48);
+    textStyle(BOLD);
 
-    const mensaje = efectoGol.jugador === 1 ? "¡GOL ROJO!" : "¡GOL AZUL!"
-    text(mensaje, 400, 200)
+    const mensaje = efectoGol.jugador === 1 ? "¡GOL ROJO!" : "¡GOL AZUL!";
+    text(mensaje, 400, 200); // solo el mensaje de gol arriba
 
-    let alphaBox = 255
+    // === CARTEL ABAJO ===
+    let alphaBox = 255;
     if (tiempoTranscurrido < 200) {
-      alphaBox = map(tiempoTranscurrido, 0, 200, 0, 255)
+      alphaBox = map(tiempoTranscurrido, 0, 200, 0, 255);
     } else if (tiempoTranscurrido > 3800) {
-      alphaBox = map(tiempoTranscurrido, 3800, 4000, 255, 0)
+      alphaBox = map(tiempoTranscurrido, 3800, 4000, 255, 0);
     }
 
-    fill(0, 0, 0, alphaBox * 0.8)
-    rect(100, 350, 600, 120, 15)
+    fill(0, 0, 0, alphaBox * 0.8);
+    rect(100, 520, 600, 120, 15);
 
-    stroke(255, 215, 0, alphaBox)
-    strokeWeight(3)
-    noFill()
-    rect(100, 350, 600, 120, 15)
-    noStroke()
+    stroke(255, 215, 0, alphaBox);
+    strokeWeight(3);
+    noFill();
+    rect(100, 520, 600, 120, 15);
+    noStroke();
 
-    fill(255, 215, 0, alphaBox)
-    textSize(24)
-    text("📚", 400, 375)
+    fill(255, 215, 0, alphaBox);
+    textSize(24);
+    text("📚", 400, 545);
 
-    fill(255, 215, 0, alphaBox)
-    textSize(16)
-    textStyle(BOLD)
-    text("¿SABÍAS QUÉ?", 400, 395)
+    fill(255, 215, 0, alphaBox);
+    textSize(16);
+    textStyle(BOLD);
+    text("¿SABÍAS QUÉ?", 400, 565);
 
-    fill(255, 255, 255, alphaBox)
-    textSize(14)
-    textStyle(NORMAL)
+    fill(255, 255, 255, alphaBox);
+    textSize(14);
+    textStyle(NORMAL);
+    textAlign(CENTER, CENTER);
+    text(efectoGol.hecho, 400, 585); // solo se dibuja acá
 
-    // Dividir el texto en múltiples líneas si es muy largo
-    const palabras = efectoGol.hecho.split(" ")
-    let linea = ""
-    let yTexto = 420
-
-    for (let i = 0; i < palabras.length; i++) {
-      const testLinea = linea + palabras[i] + " "
-      const anchoLinea = textWidth(testLinea)
-
-      if (anchoLinea > 550 && i > 0) {
-        text(linea, 400, yTexto)
-        linea = palabras[i] + " "
-        yTexto += 20
-      } else {
-        linea = testLinea
-      }
-    }
-    text(linea, 400, yTexto)
+   
   } else {
     efectoGol = null
   }
