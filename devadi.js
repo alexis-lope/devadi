@@ -957,7 +957,7 @@ class Jugador {
     this.teclas = { izq, der, salto, patear }
     this.pateando = false
     this.tiempoPateo = 0
-    this.velocidad = 3.75
+    this.velocidad = 2.5
     this.fuerzaSalto = 12
     this.animacion = 0
   }
@@ -1135,7 +1135,7 @@ class Pelota {
 
     this.x += this.vx
     this.y += this.vy
-    this.vy += 0.5
+    this.vy += 0.7
     this.rotacion += this.vx * 0.1
 
     if (this.y > 500 - this.r) {
