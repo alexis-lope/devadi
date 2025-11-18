@@ -7,7 +7,7 @@
 
   <link rel="stylesheet" href="style.css">
   <script language="javascript" type="text/javascript" src="libraries/p5.min.js"></script>
-  <script language="javascript" type="text/javascript" src="kevin_29_8_25.js"></script>
+  <script language="javascript" type="text/javascript" src="devadi.js"></script>
    
 
   
@@ -94,7 +94,13 @@
         <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/2.jpg-mL2NgEz0Og7hiWN1JuAIWWu288Xt7S.jpeg" alt="Vista del campo de juego" />
         <p>Campo de fútbol profesional con marcador en tiempo real</p>
       </div>
+      <div class="card">
+        <h3>🏆 Tabla de Posiciones</h3>
+        <button id="btnRanking" class="ranking-btn">Ver Ranking</button>
+      </div>
     </div>
+    
+
 
     <div class="footer">
       <div class="footer-card">
@@ -103,5 +109,37 @@
       </div>
     </div>
   </div>
+  <div id="rankingModal" class="modal">
+  <div class="modal-content">
+    <span class="close-modal" id="closeModal">×</span>
+    <h2>🏆 Tabla de Posiciones</h2>
+
+    <div id="rankingContainer">
+      Cargando tabla...
+    </div>
+  </div>
+</div>
+<script>
+document.getElementById("btnRanking").onclick = function() {
+    document.getElementById("rankingModal").style.display = "block";
+
+    fetch("model/posiciones.php")
+    .then(response => response.text())
+    .then(data => {
+        document.getElementById("rankingContainer").innerHTML = data;
+    });
+};
+
+document.getElementById("closeModal").onclick = function() {
+    document.getElementById("rankingModal").style.display = "none";
+};
+
+window.onclick = function(e) {
+    if (e.target == document.getElementById("rankingModal")) {
+        document.getElementById("rankingModal").style.display = "none";
+    }
+};
+</script>
+
 </body>
 </html>

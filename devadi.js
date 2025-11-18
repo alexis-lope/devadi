@@ -14,10 +14,15 @@ let menuSeleccion = 0
 let confirmacionSeleccion = 0
 let imagenCampo
 
-let usuarioActual = null
+let usuario1 = null  // Datos del jugador 1 logueado
+let usuario2 = null  // Datos del jugador 2 logueado
+let faseLogin = 1    // 1 = login jugador 1, 2 = login jugador 2
 let estadisticasData = null
 
 let modoAuth = "login" // "login" o "register"
+
+let jugadorEstadisticaSeleccionado = 1 // 1 o 2
+
 let campoActivo = 0 // 0: usuario, 1: email (solo registro), 2: password, 3: confirmar password (solo registro)
 let inputUsuario = ""
 let inputEmail = ""
@@ -115,104 +120,114 @@ function draw() {
   animacionTitulo += 0.05
 }
 
-/* ------------------------------------------
-   PANTALLA LOGIN / REGISTRO
-   ------------------------------------------ */
-
 function mostrarPantallaLogin() {
-  push()
-  translate(400, 120)
-  rotate(sin(animacionTitulo) * 0.02)
+  background(30)
 
-  fill(0, 0, 0, 100)
   textAlign(CENTER, CENTER)
-  textSize(48)
-  textStyle(BOLD)
-  text("⚽ FÚTBOL 2D ⚽", 3, 3)
-
   fill(255, 215, 0)
-  text("⚽ FÚTBOL 2D ⚽", 0, 0)
-  pop()
-
-  // Panel de login/registro
-  fill(255, 255, 255, 250)
-  rect(200, 200, 400, modoAuth === "login" ? 320 : 400, 16)
-
-  // Título
-  fill(30, 58, 138)
-  textAlign(CENTER, CENTER)
-  textSize(28)
+  textSize(36)
   textStyle(BOLD)
-  text(modoAuth === "login" ? "🔐 Iniciar Sesión" : "📝 Crear Cuenta", 400, 240)
+  text("⚽ INICIO DE SESIÓN ⚽", 400, 60)
 
-  textStyle(NORMAL)
-  textSize(16)
-
-  let yPos = 290
-
-  // Campo Usuario
-  dibujarCampoInput("Usuario", inputUsuario, 250, yPos, campoActivo === 0)
-  yPos += 60
-
-  // Campo Email (solo en registro)
-  if (modoAuth === "register") {
-    dibujarCampoInput("Email", inputEmail, 250, yPos, campoActivo === 1)
-    yPos += 60
-  }
-
-  // Campo Contraseña
-  dibujarCampoInput(
-    "Contraseña",
-    "*".repeat(inputPassword.length),
-    250,
-    yPos,
-    campoActivo === (modoAuth === "login" ? 1 : 2),
-  )
-  yPos += 60
-
-  // Campo Confirmar Contraseña (solo en registro)
-  if (modoAuth === "register") {
-    dibujarCampoInput("Confirmar Contraseña", "*".repeat(inputConfirmPassword.length), 250, yPos, campoActivo === 3)
-    yPos += 60
-  }
-
-  // Botón principal
-  const btnY = yPos
-  if (mouseX >= 250 && mouseX <= 550 && mouseY >= btnY && mouseY <= btnY + 40) {
-    fill(37, 99, 235)
-  } else {
-    fill(59, 130, 246)
-  }
-  rect(250, btnY, 300, 40, 8)
+  // Indicador de fase
   fill(255)
-  textAlign(CENTER, CENTER)
-  textSize(18)
-  textStyle(BOLD)
-  text(modoAuth === "login" ? "INICIAR SESIÓN" : "REGISTRARSE", 400, btnY + 20)
+  textSize(24)
+  if (faseLogin === 1) {
+    fill(255, 69, 0)
+    text("🔴 JUGADOR ROJO", 400, 120)
+  } else {
+    fill(30, 144, 255)
+    text("🔵 JUGADOR AZUL", 400, 120)
+  }
+
+  // Mostrar jugador 1 si ya está logueado
+  if (usuario1 && faseLogin === 2) {
+    fill(34, 197, 94)
+    textSize(14)
+    text(`✔ Jugador 1: ${usuario1.usuario}`, 400, 150)
+  }
+
+  // Campos de autenticación
+  mostrarCamposAuth()
 
   // Mensaje de error/éxito
-  if (mensajeAuth !== "") {
+  if (mensajeAuth) {
     fill(mensajeAuthColor[0], mensajeAuthColor[1], mensajeAuthColor[2])
     textSize(14)
-    textStyle(NORMAL)
-    text(mensajeAuth, 400, btnY + 60)
+    textAlign(CENTER, CENTER)
+    text(mensajeAuth, 400, 550)
   }
+}
 
-  // Link para cambiar modo
-  fill(107, 114, 128)
-  textSize(14)
-  const linkText = modoAuth === "login" ? "¿No tienes cuenta? Regístrate aquí" : "¿Ya tienes cuenta? Inicia sesión aquí"
-  text(linkText, 400, btnY + 90)
+function mostrarCamposAuth() {
+  let yPos = 200
 
-  // Instrucciones
-  fill(156, 163, 175)
-  textSize(12)
-  text("TAB: cambiar campo | ENTER: enviar | ESC: cambiar modo", 400, 570)
+  if (modoAuth === "login") {
+    // Campo Usuario
+    dibujarCampoInput("Usuario", inputUsuario, 250, yPos, campoActivo === 0)
+    yPos += 70
+
+    // Campo Contraseña
+    dibujarCampoInput("Contraseña", "*".repeat(inputPassword.length), 250, yPos, campoActivo === 1)
+    yPos += 80
+
+    // Botón LOGIN
+    fill(59, 130, 246)
+    rect(250, yPos, 300, 50, 10)
+    fill(255)
+    textSize(20)
+    textAlign(CENTER, CENTER)
+    text("INICIAR SESIÓN", 400, yPos + 25)
+
+    // Link para registro
+    yPos += 70
+    fill(200)
+    textSize(14)
+    text("¿No tienes cuenta? Presiona ESC para registrarte", 400, yPos)
+  } else {
+    // MODO REGISTRO
+    fill(255)
+    textSize(16)
+    textAlign(CENTER, TOP)
+    text("Crear Nueva Cuenta", 400, 180)
+
+    yPos = 210
+
+    // Usuario
+    dibujarCampoInput("Usuario", inputUsuario, 250, yPos, campoActivo === 0)
+    yPos += 60
+
+    // Email
+    dibujarCampoInput("Email", inputEmail, 250, yPos, campoActivo === 1)
+    yPos += 60
+
+    // Contraseña
+    dibujarCampoInput("Contraseña", "*".repeat(inputPassword.length), 250, yPos, campoActivo === 2)
+    yPos += 60
+
+    // Confirmar Contraseña
+    dibujarCampoInput("Confirmar", "*".repeat(inputConfirmPassword.length), 250, yPos, campoActivo === 3)
+    yPos += 70
+
+    // Botón REGISTRAR
+    fill(34, 197, 94)
+    rect(250, yPos, 300, 50, 10)
+    fill(255)
+    textSize(20)
+    textAlign(CENTER, CENTER)
+    text("REGISTRARSE", 400, yPos + 25)
+
+    // Link para login
+    yPos += 60
+    fill(200)
+    textSize(14)
+    text("¿Ya tienes cuenta? Presiona ESC para iniciar sesión", 400, yPos)
+  }
 }
 
 function dibujarCampoInput(label, valor, x, y, activo) {
   // Label
-  fill(55, 65, 81)
+  fill(200)
   textAlign(LEFT, TOP)
   textSize(14)
   textStyle(BOLD)
@@ -220,18 +235,18 @@ function dibujarCampoInput(label, valor, x, y, activo) {
 
   // Input box
   if (activo) {
-    stroke(59, 130, 246)
+    stroke(255, 215, 0)
     strokeWeight(2)
   } else {
-    stroke(229, 231, 235)
-    strokeWeight(2)
+    stroke(100)
+    strokeWeight(1)
   }
-  fill(255)
+  fill(50)
   rect(x, y, 300, 40, 8)
   noStroke()
 
   // Texto del input
-  fill(0)
+  fill(255)
   textAlign(LEFT, CENTER)
   textSize(16)
   textStyle(NORMAL)
@@ -241,7 +256,7 @@ function dibujarCampoInput(label, valor, x, y, activo) {
   // Cursor parpadeante
   if (activo && cursorVisible) {
     const cursorX = x + 12 + textWidth(textoMostrar)
-    stroke(59, 130, 246)
+    stroke(255, 215, 0)
     strokeWeight(2)
     line(cursorX, y + 10, cursorX, y + 30)
     noStroke()
@@ -271,15 +286,48 @@ async function procesarLogin() {
 
     const data = await response.json()
 
-    if (data.success) {
-      usuarioActual = data.user
-      estado = "menu"
-      limpiarCamposAuth()
-      mensajeAuth = ""
-    } else {
+    if (!data.success) {
       mensajeAuth = data.message || "Credenciales incorrectas"
       mensajeAuthColor = [239, 68, 68]
+      return
     }
+
+    // --- LOGIN EXITOSO ---
+    if (faseLogin === 1) {
+      usuario1 = data.user
+      mensajeAuth = "✔ Jugador 1 confirmado. Ahora login Jugador 2..."
+      mensajeAuthColor = [34, 197, 94]
+
+      // Pasar a fase 2
+      setTimeout(() => {
+        faseLogin = 2
+        limpiarCamposAuth()
+        mensajeAuth = ""
+      }, 1500)
+      return
+    }
+
+    if (faseLogin === 2) {
+      // EVITAR QUE AMBOS USEN LA MISMA CUENTA
+      if (data.user.id === usuario1.id) {
+        mensajeAuth = "⚠ Ese usuario ya es el Jugador 1. Usa otra cuenta."
+        mensajeAuthColor = [239, 68, 68]
+        return
+      }
+
+      usuario2 = data.user
+      mensajeAuth = "✔ Jugador 2 confirmado. ¡A jugar!"
+      mensajeAuthColor = [34, 197, 94]
+
+      // COMPLETADO LOS 2 LOGINS
+      setTimeout(() => {
+        estado = "menu"
+        limpiarCamposAuth()
+        mensajeAuth = ""
+      }, 1500)
+      return
+    }
+
   } catch (error) {
     console.error(error)
     mensajeAuth = "Error de conexión con el servidor"
@@ -320,7 +368,7 @@ async function procesarRegistro() {
         modoAuth = "login"
         limpiarCamposAuth()
         mensajeAuth = ""
-      }, 1200)
+      }, 1500)
     } else {
       mensajeAuth = data.message || "Error en el registro"
       mensajeAuthColor = [239, 68, 68]
@@ -345,7 +393,9 @@ function limpiarCamposAuth() {
    ------------------------------------------ */
 
 async function cargarEstadisticas() {
-  if (!usuarioActual) return
+  const usuarioSeleccionado = jugadorEstadisticaSeleccionado === 1 ? usuario1 : usuario2
+  
+  if (!usuarioSeleccionado) return
 
   try {
     const response = await fetch("model/stats.php", {
@@ -353,7 +403,7 @@ async function cargarEstadisticas() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ usuario: usuarioActual.usuario }),
+      body: JSON.stringify({ usuario: usuarioSeleccionado.usuario }),
     })
 
     const data = await response.json()
@@ -415,7 +465,7 @@ function mostrarMenu() {
 
   fill(255)
   textSize(16)
-  text(`Jugador: ${usuarioActual ? usuarioActual.usuario : "Invitado"}`, 400, 500)
+  text(`🔴 ${usuario1 ? usuario1.usuario : "---"}  vs  🔵 ${usuario2 ? usuario2.usuario : "---"}`, 400, 500)
 
   fill(200)
   textSize(14)
@@ -439,8 +489,8 @@ function mostrarInstrucciones() {
   const instrucciones = [
     "🎯 OBJETIVO: Marca más goles que tu oponente",
     "",
-    "🔴 JUGADOR ROJO: ← → mover, ↑ saltar, L patear",
-    "🔵 JUGADOR AZUL: A/D mover, W saltar, R patear",
+    "🔴 JUGADOR ROJO: A/D mover, W saltar, R patear",
+    "🔵 JUGADOR AZUL: ← → mover, ↑ saltar, L patear",
     "",
     "⚽ CONTROLES: P pausar, ESPACIO confirmar",
   ]
@@ -464,35 +514,72 @@ function mostrarEstadisticas() {
   fill(0, 0, 0, 150)
   rect(0, 0, 800, 600)
 
-  fill(255, 255, 255, 250)
-  rect(150, 80, 500, 480, 16)
+  // Selector de jugador
+  fill(255)
+  textAlign(CENTER, CENTER)
+  textSize(20)
+  text("Selecciona Jugador:", 400, 50)
 
-  fill(59, 130, 246)
-  rect(150, 80, 500, 80, 16)
-  rect(150, 140, 500, 20)
+  // Botón Jugador 1
+  if (jugadorEstadisticaSeleccionado === 1) {
+    fill(255, 69, 0)
+    stroke(255, 215, 0)
+    strokeWeight(3)
+  } else {
+    fill(100)
+    noStroke()
+  }
+  rect(200, 70, 150, 40, 10)
+  
+  fill(255)
+  textSize(16)
+  text(`🔴 ${usuario1 ? usuario1.usuario : "---"}`, 275, 90)
+
+  // Botón Jugador 2
+  if (jugadorEstadisticaSeleccionado === 2) {
+    fill(30, 144, 255)
+    stroke(255, 215, 0)
+    strokeWeight(3)
+  } else {
+    fill(100)
+    noStroke()
+  }
+  rect(450, 70, 150, 40, 10)
+  
+  fill(255)
+  text(`🔵 ${usuario2 ? usuario2.usuario : "---"}`, 525, 90)
+  
+  noStroke()
+
+  // Panel de estadísticas
+  fill(255, 255, 255, 250)
+  rect(150, 130, 500, 400, 16)
+
+  const usuarioSeleccionado = jugadorEstadisticaSeleccionado === 1 ? usuario1 : usuario2
+
+  fill(jugadorEstadisticaSeleccionado === 1 ? color(255, 69, 0) : color(30, 144, 255))
+  rect(150, 130, 500, 60, 16)
+  rect(150, 175, 500, 15)
 
   fill(255)
   textAlign(CENTER, CENTER)
-  textSize(28)
+  textSize(24)
   textStyle(BOLD)
-  text(usuarioActual ? usuarioActual.username : "Usuario", 400, 110)
-  textSize(14)
-  textStyle(NORMAL)
-  text("Estadísticas del Jugador", 400, 140)
+  text(usuarioSeleccionado ? usuarioSeleccionado.usuario : "Sin datos", 400, 155)
 
   if (estadisticasData) {
     const stats = [
-      { label: "Victorias pj1", value: estadisticasData.victorias },
-      { label: "Victorias pj2", value: estadisticasData.derrotas },
-      { label: "Goles pj1", value: estadisticasData.goles_favor },
-      { label: "Goles pj2", value: estadisticasData.goles_contra },
+      { label: "Victorias", value: estadisticasData.victorias },
+      { label: "Derrotas", value: estadisticasData.derrotas },
+      { label: "Goles Favor", value: estadisticasData.goles_favor },
+      { label: "Goles Contra", value: estadisticasData.goles_contra },
     ]
 
     let x = 180
-    let y = 200
+    let y = 220
     for (let i = 0; i < stats.length; i++) {
       fill(243, 244, 246)
-      rect(x, y, 210, 90, 12)
+      rect(x, y, 210, 80, 12)
 
       fill(107, 114, 128)
       textSize(12)
@@ -500,14 +587,14 @@ function mostrarEstadisticas() {
       text(stats[i].label, x + 105, y + 25)
 
       fill(30, 58, 138)
-      textSize(32)
+      textSize(28)
       textStyle(BOLD)
-      text(stats[i].value, x + 105, y + 60)
+      text(stats[i].value, x + 105, y + 55)
 
       x += 230
       if (i === 1) {
         x = 180
-        y = 310
+        y = 320
       }
     }
 
@@ -520,7 +607,7 @@ function mostrarEstadisticas() {
     y = 420
     for (let i = 0; i < bottomStats.length; i++) {
       fill(243, 244, 246)
-      rect(x, y, 210, 90, 12)
+      rect(x, y, 210, 80, 12)
 
       fill(107, 114, 128)
       textSize(12)
@@ -528,9 +615,9 @@ function mostrarEstadisticas() {
       text(bottomStats[i].label, x + 105, y + 25)
 
       fill(30, 58, 138)
-      textSize(32)
+      textSize(28)
       textStyle(BOLD)
-      text(bottomStats[i].value, x + 105, y + 60)
+      text(bottomStats[i].value, x + 105, y + 55)
 
       x += 230
     }
@@ -541,12 +628,13 @@ function mostrarEstadisticas() {
   }
 
   fill(239, 68, 68)
-  rect(300, 530, 200, 40, 10)
+  rect(300, 545, 200, 35, 10)
   fill(255)
-  textSize(18)
+  textSize(16)
   textStyle(BOLD)
-  text("VOLVER (ESC)", 400, 550)
+  text("VOLVER (ESC)", 400, 562)
 }
+
 /* ------------------------------------------
    MODO JUEGO / PAUSA / FIN / CONFIRMACIÓN
    ------------------------------------------ */
@@ -607,10 +695,10 @@ function mostrarPantallaFinal() {
   textSize(24)
   if (goles1 > goles2) {
     fill(255, 69, 0)
-    text("GANÓ EL JUGADOR ROJO", 400, 250)
+    text(`GANÓ ${usuario1 ? usuario1.usuario : "JUGADOR ROJO"}`, 400, 250)
   } else if (goles2 > goles1) {
     fill(30, 144, 255)
-    text("GANÓ EL JUGADOR AZUL", 400, 250)
+    text(`GANÓ ${usuario2 ? usuario2.usuario : "JUGADOR AZUL"}`, 400, 250)
   } else {
     fill(255)
     text("EMPATE", 400, 250)
@@ -621,7 +709,7 @@ function mostrarPantallaFinal() {
   text("Presiona ESPACIO para jugar de nuevo", 400, 300)
   text("Presiona ESC para volver al Menú", 400, 320)
 
-  if (usuarioActual && !window.resultadoGuardado) {
+  if ((usuario1 || usuario2) && !window.resultadoGuardado) {
     guardarResultadoPartido(goles1, goles2)
     window.resultadoGuardado = true
   }
@@ -743,7 +831,9 @@ function keyPressed(event) {
             estado = "instrucciones"
             break
           case 3:
-            usuarioActual = null
+            usuario1 = null
+            usuario2 = null
+            faseLogin = 1
             estado = "login"
             limpiarCamposAuth()
             break
@@ -758,7 +848,13 @@ function keyPressed(event) {
       break
 
     case "estadisticas":
-      if (keyCode === ESCAPE) {
+      if (keyCode === LEFT_ARROW) {
+        jugadorEstadisticaSeleccionado = 1
+        cargarEstadisticas()
+      } else if (keyCode === RIGHT_ARROW) {
+        jugadorEstadisticaSeleccionado = 2
+        cargarEstadisticas()
+      } else if (keyCode === ESCAPE) {
         estado = "menu"
       }
       break
@@ -831,8 +927,8 @@ function keyReleased() {
 
 function mousePressed() {
   if (estado === "login") {
-    const btnY = modoAuth === "login" ? 410 : 490
-    if (mouseX >= 250 && mouseX <= 550 && mouseY >= btnY && mouseY <= btnY + 40) {
+    const btnY = modoAuth === "login" ? 320 : 490
+    if (mouseX >= 250 && mouseX <= 550 && mouseY >= btnY && mouseY <= btnY + 50) {
       if (modoAuth === "login") {
         procesarLogin()
       } else {
@@ -846,11 +942,11 @@ function mousePressed() {
       mensajeAuth = ""
     }
 
-    let yPos = 290
+    let yPos = 200
     if (mouseX >= 250 && mouseX <= 550 && mouseY >= yPos && mouseY <= yPos + 40) {
       campoActivo = 0
     }
-    yPos += 60
+    yPos += 70
 
     if (modoAuth === "register") {
       if (mouseX >= 250 && mouseX <= 550 && mouseY >= yPos && mouseY <= yPos + 40) {
@@ -862,7 +958,7 @@ function mousePressed() {
     if (mouseX >= 250 && mouseX <= 550 && mouseY >= yPos && mouseY <= yPos + 40) {
       campoActivo = modoAuth === "login" ? 1 : 2
     }
-    yPos += 60
+    yPos += 70
 
     if (modoAuth === "register") {
       if (mouseX >= 250 && mouseX <= 550 && mouseY >= yPos && mouseY <= yPos + 40) {
@@ -871,6 +967,18 @@ function mousePressed() {
     }
 
     return
+  }
+
+  if (estado === "estadisticas") {
+    if (mouseY >= 70 && mouseY <= 110) {
+      if (mouseX >= 200 && mouseX <= 350) {
+        jugadorEstadisticaSeleccionado = 1
+        cargarEstadisticas()
+      } else if (mouseX >= 450 && mouseX <= 600) {
+        jugadorEstadisticaSeleccionado = 2
+        cargarEstadisticas()
+      }
+    }
   }
 
   switch (estado) {
@@ -906,9 +1014,15 @@ function mouseMoved() {
     ) {
       cursor = "pointer"
     }
+  } else if (estado === "estadisticas") {
+    if (mouseY >= 70 && mouseY <= 110) {
+      if ((mouseX >= 200 && mouseX <= 350) || (mouseX >= 450 && mouseX <= 600)) {
+        cursor = "pointer"
+      }
+    }
   } else if (estado === "login") {
-    const btnY = modoAuth === "login" ? 410 : 490
-    if (mouseX >= 250 && mouseX <= 550 && mouseY >= btnY && mouseY <= btnY + 40) {
+    const btnY = modoAuth === "login" ? 320 : 490
+    if (mouseX >= 250 && mouseX <= 550 && mouseY >= btnY && mouseY <= btnY + 50) {
       cursor = "pointer"
     }
     const linkY = btnY + 90
@@ -916,16 +1030,16 @@ function mouseMoved() {
       cursor = "pointer"
     }
 
-    let yPos = 290
+    let yPos = 200
     if (mouseX >= 250 && mouseX <= 550) {
       if (mouseY >= yPos && mouseY <= yPos + 40) cursor = "text"
-      yPos += 60
+      yPos += 70
       if (modoAuth === "register") {
         if (mouseY >= yPos && mouseY <= yPos + 40) cursor = "text"
         yPos += 60
       }
       if (mouseY >= yPos && mouseY <= yPos + 40) cursor = "text"
-      yPos += 60
+      yPos += 70
       if (modoAuth === "register") {
         if (mouseY >= yPos && mouseY <= yPos + 40) cursor = "text"
       }
@@ -938,9 +1052,6 @@ function mouseMoved() {
   }
 }
 
-/* ------------------------------------------
-   CLASES: Jugador, Pelota, Particula
-   ------------------------------------------ */
 
 class Jugador {
   constructor(x, col, izq, der, salto, patear, nombre) {
@@ -957,7 +1068,7 @@ class Jugador {
     this.teclas = { izq, der, salto, patear }
     this.pateando = false
     this.tiempoPateo = 0
-    this.velocidad = 2.5
+    this.velocidad = 3.01
     this.fuerzaSalto = 12
     this.animacion = 0
   }
@@ -1004,54 +1115,159 @@ class Jugador {
   }
 
   mostrar() {
+  push()
+  translate(this.x, this.y)
+
+  // Sombra simple
+  fill(0, 0, 0, 60)
+  ellipse(0, this.altura + 10, this.radioCabeza * 2.5, 6)
+
+  const colorBase = this.color
+  const colorPiel = [245, 210, 180]
+  
+  // Cuello
+  fill(colorPiel[0] - 30, colorPiel[1] - 30, colorPiel[2] - 30)
+  rect(-3, 12, 6, 6)
+  
+  // Cabeza ovalada
+  fill(colorPiel[0], colorPiel[1], colorPiel[2])
+  ellipse(0, 0, this.radioCabeza * 1.8, this.radioCabeza * 2.2)
+
+  // Cabello
+  fill(60, 40, 30)
+  arc(0, -4, this.radioCabeza * 2, this.radioCabeza * 1.8, PI, TWO_PI)
+  
+  // Orejas
+  fill(colorPiel[0] - 20, colorPiel[1] - 20, colorPiel[2] - 20)
+  ellipse(-this.radioCabeza + 1, 1, 5, 7)
+  ellipse(this.radioCabeza - 1, 1, 5, 7)
+
+  // Ojos
+  fill(255)
+  ellipse(-4, -1, 6, 7)
+  ellipse(4, -1, 6, 7)
+  
+  fill(70, 130, 180)
+  ellipse(-4, 0, 4, 4)
+  ellipse(4, 0, 4, 4)
+  
+  fill(20, 20, 20)
+  ellipse(-4, 0, 2, 2)
+  ellipse(4, 0, 2, 2)
+
+  // Cejas
+  noFill()
+  stroke(60, 40, 30)
+  strokeWeight(1.5)
+  arc(-4, -5, 5, 3, PI, TWO_PI)
+  arc(4, -5, 5, 3, PI, TWO_PI)
+  noStroke()
+
+  // Nariz
+  fill(colorPiel[0] - 30, colorPiel[1] - 30, colorPiel[2] - 30)
+  ellipse(0, 3, 2, 4)
+
+  // Boca
+  noFill()
+  stroke(180, 80, 80)
+  strokeWeight(1.5)
+  arc(0, 5, 6, 5, 0, PI)
+  noStroke()
+
+  // Camiseta
+  fill(colorBase[0], colorBase[1], colorBase[2])
+  rect(-11, 20, 22, 26, 3)
+
+  // Cuello de camiseta
+  fill(255, 255, 255)
+  triangle(-3, 18, 3, 18, 0, 23)
+  
+  // Número
+  fill(255)
+  textAlign(CENTER, CENTER)
+  textSize(16)
+  textStyle(BOLD)
+  text(this.nombre === "ROJO" ? "1" : "2", 0, 33)
+
+  // Brazos simples
+  fill(colorPiel[0] - 20, colorPiel[1] - 20, colorPiel[2] - 20)
+  rect(-14, 24, 5, 18, 3)
+  rect(9, 24, 5, 18, 3)
+  
+  // Manos
+  fill(colorPiel[0], colorPiel[1], colorPiel[2])
+  ellipse(-11.5, 43, 6, 7)
+  ellipse(11.5, 43, 6, 7)
+
+  // Pantalón
+  fill(colorBase[0] * 0.5, colorBase[1] * 0.5, colorBase[2] * 0.5)
+  rect(-10, 46, 20, 12, 2)
+
+  // Piernas con animación de patear
+  if (this.pateando) {
+    const piernaPatada = this.nombre === "AZUL" ? -1 : 1
+    
+    // Pierna que patea (extendida)
+    fill(colorPiel[0] - 30, colorPiel[1] - 30, colorPiel[2] - 30)
+    
     push()
-    translate(this.x, this.y)
-
-    fill(0, 0, 0, 50)
-    ellipse(0, this.altura + 8, this.radioCabeza * 2, 8)
-
-    fill(this.color[0], this.color[1], this.color[2])
-    ellipse(0, 0, this.radioCabeza * 2)
-
-    fill(255)
-    ellipse(-6, -4, 5)
-    ellipse(6, -4, 5)
-    fill(0)
-    ellipse(-6, -4, 2)
-    ellipse(6, -4, 2)
-
-    fill(this.color[0], this.color[1], this.color[2])
-    rect(-12, 20, 24, 32, 6)
-
-    stroke(this.color[0] - 50, this.color[1] - 50, this.color[2] - 50)
-    strokeWeight(4)
-    const brazoOffset = Math.sin(this.animacion) * 3
-    line(-12, 28, -20, 36 + brazoOffset)
-    line(12, 28, 20, 36 - brazoOffset)
-
-    strokeWeight(6)
-    if (this.pateando) {
-      if (this.nombre === "AZUL") {
-        line(0, 48, -20, 36)
-        line(0, 48, 4, 70)
-      } else {
-        line(0, 48, 20, 36)
-        line(0, 48, -4, 70)
-      }
-    } else {
-      const piernaOffset = this.izquierda || this.derecha ? Math.sin(this.animacion * 2) * 2 : 0
-      line(-6, 48, -6, 70 + piernaOffset)
-      line(6, 48, 6, 70 - piernaOffset)
-    }
-
+    translate(piernaPatada * 5, 58)
+    rotate(piernaPatada * -0.6)
+    rect(-3, 0, 6, 14, 2)
+    
+    // Media extendida
+    fill(colorBase[0] * 0.9, colorBase[1] * 0.9, colorBase[2] * 0.9)
+    rect(-2.5, 14, 5, 14, 2)
+    
+    // Bota
+    fill(40, 40, 40)
+    ellipse(0, 29, 8, 6)
     pop()
-
-    fill(255)
-    textAlign(CENTER, BOTTOM)
-    textSize(10)
-    textStyle(BOLD)
-    text(this.nombre, this.x, this.y - 25)
+    
+    // Pierna de apoyo (normal)
+    fill(colorPiel[0] - 30, colorPiel[1] - 30, colorPiel[2] - 30)
+    rect(-piernaPatada * 8, 58, 6, 14, 2)
+    
+    fill(colorBase[0] * 0.9, colorBase[1] * 0.9, colorBase[2] * 0.9)
+    rect(-piernaPatada * 7.5, 72, 5, 14, 2)
+    
+    fill(40, 40, 40)
+    ellipse(-piernaPatada * 5, 87, 8, 6)
+    
+  } else {
+    // Piernas normales
+    fill(colorPiel[0] - 30, colorPiel[1] - 30, colorPiel[2] - 30)
+    rect(-8, 58, 6, 14, 2)
+    rect(2, 58, 6, 14, 2)
+    
+    // Medias
+    fill(colorBase[0] * 0.9, colorBase[1] * 0.9, colorBase[2] * 0.9)
+    rect(-7.5, 72, 5, 14, 2)
+    rect(2.5, 72, 5, 14, 2)
+    
+    // Botas
+    fill(40, 40, 40)
+    ellipse(-5, 87, 8, 6)
+    ellipse(5, 87, 8, 6)
   }
+
+  pop()
+
+  // Nombre
+  fill(0, 0, 0, 140)
+  rect(this.x - 28, this.y - 34, 56, 16, 8)
+  
+  stroke(colorBase[0], colorBase[1], colorBase[2])
+  strokeWeight(2)
+  rect(this.x - 28, this.y - 34, 56, 16, 8)
+  noStroke()
+  
+  fill(255)
+  textAlign(CENTER, CENTER)
+  textSize(10)
+  textStyle(BOLD)
+  text(this.nombre, this.x, this.y - 26)
+}
 
   patear() {
     const pieX = this.pateando ? this.x + 20 : this.x
@@ -1245,9 +1461,6 @@ class Particula {
   }
 }
 
-/* ------------------------------------------
-   FUNCIONES ÚTILES
-   ------------------------------------------ */
 
 function reiniciarPosiciones() {
   jugador1.x = 150
@@ -1376,7 +1589,7 @@ function verificarFinJuego() {
   if (tiempoTranscurrido >= duracion || goles1 >= puntajeMaximo || goles2 >= puntajeMaximo) {
     estado = "fin"
 
-    if (usuarioActual && !window.resultadoGuardado) {
+    if ((usuario1 || usuario2) && !window.resultadoGuardado) {
       guardarResultadoPartido(goles1, goles2)
       window.resultadoGuardado = true
     }
@@ -1384,28 +1597,42 @@ function verificarFinJuego() {
 }
 
 async function guardarResultadoPartido(g1, g2) {
-  if (!usuarioActual) return
   try {
-    const response = await fetch("model/save_result.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        user_id: usuarioActual.id,
-        goles1: g1,
-        goles2: g2,
-      }),
-    })
+    // Guardar para Jugador 1 si está logueado
+    if (usuario1) {
+      const response1 = await fetch("model/save_result.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: usuario1.id,
+          goles_favor: g1,
+          goles_contra: g2,
+        }),
+      })
+      const data1 = await response1.json()
+      if (!data1.success) {
+        console.error("Error guardando resultado Jugador 1:", data1.message)
+      }
+    }
 
-    const raw = await response.text()
-    console.log("RAW RESPONSE:", raw)
-
-    const data = JSON.parse(raw)
-
-    if (!data.success) {
-      console.error("Error guardando resultado del partido:", data.message)
+    // Guardar para Jugador 2 si está logueado
+    if (usuario2) {
+      const response2 = await fetch("model/save_result.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: usuario2.id,
+          goles_favor: g2,
+          goles_contra: g1,
+        }),
+      })
+      const data2 = await response2.json()
+      if (!data2.success) {
+        console.error("Error guardando resultado Jugador 2:", data2.message)
+      }
     }
   } catch (error) {
-    console.error("Error guardando resultado del partido:", error)
+    console.error("Error guardando resultados del partido:", error)
   }
 }
 
@@ -1413,7 +1640,6 @@ function mostrarEfectoGol() {
   const tiempoTranscurrido = millis() - efectoGol.tiempo;
 
   if (tiempoTranscurrido < 3000) {
-    // === MENSAJE DE GOL (arriba) ===
     const alphaMensaje = map(tiempoTranscurrido, 0, 3000, 255, 0);
 
     fill(255, 255, 0, alphaMensaje);
@@ -1422,14 +1648,13 @@ function mostrarEfectoGol() {
     textStyle(BOLD);
 
     const mensaje = efectoGol.jugador === 1 ? "¡GOL ROJO!" : "¡GOL AZUL!";
-    text(mensaje, 400, 200); // solo el mensaje de gol arriba
+    text(mensaje, 400, 200);
 
-    // === CARTEL ABAJO ===
     let alphaBox = 255;
     if (tiempoTranscurrido < 200) {
       alphaBox = map(tiempoTranscurrido, 0, 200, 0, 255);
-    } else if (tiempoTranscurrido > 3800) {
-      alphaBox = map(tiempoTranscurrido, 3800, 4000, 255, 0);
+    } else if (tiempoTranscurrido > 2800) {
+      alphaBox = map(tiempoTranscurrido, 2800, 3000, 255, 0);
     }
 
     fill(0, 0, 0, alphaBox * 0.8);
@@ -1454,9 +1679,7 @@ function mostrarEfectoGol() {
     textSize(14);
     textStyle(NORMAL);
     textAlign(CENTER, CENTER);
-    text(efectoGol.hecho, 400, 585); // solo se dibuja acá
-
-   
+    text(efectoGol.hecho, 400, 585);
   } else {
     efectoGol = null
   }
